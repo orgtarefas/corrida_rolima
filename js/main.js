@@ -1,4 +1,4 @@
-// ==================== PONTO DE ENTRADA PRINCIPAL (3D) ====================
+// ==================== PONTO DE ENTRADA PRINCIPAL ====================
 
 let raceActive = false;
 let raceStarted = false;
@@ -8,7 +8,6 @@ let animationId = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     setupGlobalEventListeners();
-    createRoomConfigModal();
 });
 
 function setupGlobalEventListeners() {
@@ -22,13 +21,19 @@ function setupGlobalEventListeners() {
     document.getElementById('logoutBtn')?.addEventListener('click', logout);
     
     // Corrida
-    document.getElementById('exitRaceBtn')?.addEventListener('click', exitRace);
-    document.getElementById('backToGarageBtn')?.addEventListener('click', backToGarage);
+    document.getElementById('exitRaceBtn')?.addEventListener('click', () => {
+        if (typeof exitRace === 'function') exitRace();
+    });
+    document.getElementById('backToGarageBtn')?.addEventListener('click', () => {
+        if (typeof backToGarage === 'function') backToGarage();
+    });
     
     // Sala
     document.getElementById('createRoomBtn')?.addEventListener('click', showConfigModal);
     document.getElementById('joinRoomBtn')?.addEventListener('click', showJoinModal);
-    document.getElementById('confirmJoinBtn')?.addEventListener('click', joinRoom);
+    document.getElementById('confirmJoinBtn')?.addEventListener('click', () => {
+        if (typeof joinRoom === 'function') joinRoom();
+    });
     document.getElementById('cancelJoinBtn')?.addEventListener('click', hideJoinModal);
     
     // Upgrades
@@ -55,7 +60,7 @@ function setupGlobalEventListeners() {
             }
         }
         
-        if (raceActive && key === 'Escape') exitRace();
+        if (raceActive && key === 'Escape' && typeof exitRace === 'function') exitRace();
     });
     
     window.addEventListener('keyup', (e) => {
@@ -68,7 +73,7 @@ function setupGlobalEventListeners() {
     });
 }
 
-function updateGame3D(delta) {
+function updateGamePhysics(delta) {
     if (!raceActive || gameOver) return;
     
     // Movimento vertical
@@ -100,31 +105,31 @@ function updateGame3D(delta) {
         playerCar.x = Math.max(ROAD_LEFT, Math.min(ROAD_RIGHT - playerCar.width, playerCar.x));
     }
     
-    // Colisões (simplificado para 3D)
-    if (!invincible) {
-        // Verificar colisão com obstáculos 3D
-    }
-    
+    // Invincibilidade
     if (invincible) {
         invincibleTimer -= delta;
         if (invincibleTimer <= 0) invincible = false;
     }
 }
 
-function startRace() {
-    applyUpgradesToCar3D();
-    startGame3D();
+function startRacePhysics() {
+    applyUpgradesToCar();
     raceActive = true;
     gameOver = false;
     
-    // Iniciar loop de física
     let lastTime = 0;
     function physicsLoop(time) {
         if (!raceActive) return;
         const delta = Math.min(0.033, (time - lastTime) / 1000);
         lastTime = time;
-        updateGame3D(delta);
+        updateGamePhysics(delta);
         requestAnimationFrame(physicsLoop);
     }
     requestAnimationFrame(physicsLoop);
 }
+
+// Exportar para uso global
+window.raceActive = raceActive;
+window.gameOver = gameOver;
+window.keysPressed = keysPressed;
+window.startRacePhysics = startRacePhysics;
