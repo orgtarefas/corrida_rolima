@@ -4,12 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Carrinho de Rolimã 3D - Descida da Ladeira</title>
-    <link rel="stylesheet" href="style.css">
     <style>
-        body {
+        * {
             margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             overflow: hidden;
-            font-family: 'Poppins', 'Segoe UI', sans-serif;
         }
         
         /* Interface sobreposta ao canvas 3D */
@@ -23,7 +27,7 @@
             z-index: 10;
         }
         
-        /* Telas do jogo (ficam sobre o 3D) */
+        /* Telas do jogo */
         .screen {
             position: fixed;
             top: 0;
@@ -51,6 +55,17 @@
             width: 90%;
             text-align: center;
             animation: slideUp 0.3s ease;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
         
         /* UI do jogo (HUD) */
@@ -112,17 +127,132 @@
             pointer-events: auto;
             cursor: pointer;
             font-family: inherit;
+            border: none;
         }
         
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .btn-primary {
+            background: #ff6b35;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .btn-secondary {
+            background: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .btn-exit {
+            background: #dc3545;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+        }
+        
+        .upgrade-item {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        
+        .upgrade-bar {
+            background: #ddd;
+            height: 8px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        
+        .upgrade-progress {
+            height: 100%;
+            background: #ff6b35;
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+        
+        .upgrade-btn {
+            width: 100%;
+            padding: 10px;
+            background: #4CAF50;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        
+        .upgrade-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .players-list ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .players-list li {
+            padding: 10px;
+            background: #f5f5f5;
+            margin: 5px 0;
+            border-radius: 8px;
+        }
+        
+        #joinModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+        }
+        
+        #joinModal.show {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 32px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+        
+        .modal-content input {
+            width: 100%;
+            padding: 12px;
+            font-size: 1.2em;
+            text-align: center;
+            letter-spacing: 3px;
+            margin: 20px 0;
+            border: 2px solid #ddd;
+            border-radius: 12px;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .modal-buttons button {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
         }
     </style>
 </head>
@@ -143,71 +273,65 @@
             <span>← A / → D = Desviar</span>
             <span>↓ S = Frear (sobe)</span>
         </div>
-        <button id="exitRaceBtn" style="background: #dc3545; color: white; border: none; padding: 8px 20px; border-radius: 30px; cursor: pointer;">SAIR</button>
+        <button id="exitRaceBtn" class="btn-exit">SAIR</button>
     </div>
     
     <!-- Telas do jogo -->
     <div id="loginScreen" class="screen active">
         <div class="container">
-            <div class="logo-area">
-                <h1 style="color: #ff6b35;">🏎️ CARRINHO DE ROLIMÃ 3D</h1>
-                <p style="color: #666;">Descida da Ladeira! Corrida Online!</p>
-            </div>
-            <div class="login-form" style="display: flex; flex-direction: column; gap: 15px;">
-                <input type="text" id="playerName" placeholder="Seu nome" maxlength="20" style="padding: 12px; border-radius: 12px; border: 2px solid #ddd;">
-                <button id="loginBtn" class="btn-primary" style="background: #ff6b35; color: white; padding: 12px; border-radius: 12px; border: none; font-weight: bold;">ENTRAR NA CORRIDA</button>
-            </div>
+            <h1 style="color: #ff6b35;">🏎️ CARRINHO DE ROLIMÃ 3D</h1>
+            <p style="color: #666; margin: 15px 0;">Descida da Ladeira! Corrida Online!</p>
+            <input type="text" id="playerName" placeholder="Seu nome" maxlength="20" style="width: 100%; padding: 12px; border-radius: 12px; border: 2px solid #ddd; margin: 15px 0;">
+            <button id="loginBtn" class="btn-primary" style="width: 100%;">ENTRAR NA CORRIDA</button>
         </div>
     </div>
     
     <div id="garageScreen" class="screen">
         <div class="container">
-            <div class="header" style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
                 <h2 id="playerNameDisplay"></h2>
-                <button id="logoutBtn" class="btn-small" style="background: #ddd; padding: 8px 20px; border-radius: 20px;">Sair</button>
+                <button id="logoutBtn" style="background: #ddd; padding: 8px 20px; border-radius: 20px;">Sair</button>
             </div>
-            <div class="stats" style="display: flex; gap: 20px; justify-content: center; margin-bottom: 30px;">
+            <div style="display: flex; gap: 20px; justify-content: center; margin-bottom: 30px;">
                 <span>🏆 Vitórias: <span id="winsCount">0</span></span>
                 <span>⭐ Pontos: <span id="pointsCount">0</span></span>
             </div>
-            <div class="upgrades-panel" style="background: #f5f5f5; border-radius: 20px; padding: 20px; margin-bottom: 20px;">
+            <div style="background: #f5f5f5; border-radius: 20px; padding: 20px; margin-bottom: 20px;">
                 <h3>🔧 UPGRADES</h3>
-                <div class="upgrade-list">
-                    <div class="upgrade-item" style="margin-bottom: 15px;">
-                        <div style="display: flex; justify-content: space-between;">
-                            <span>⚡ VELOCIDADE</span>
-                            <span>Nível <span id="speedLevel">0</span></span>
-                        </div>
-                        <div style="background: #ddd; height: 8px; border-radius: 4px; margin: 10px 0;">
-                            <div id="speedProgress" style="width: 0%; height: 100%; background: #ff6b35; border-radius: 4px;"></div>
-                        </div>
-                        <button class="upgrade-btn" data-upgrade="speed" style="width: 100%; padding: 10px; background: #4CAF50; color: white; border: none; border-radius: 8px;">MELHORAR (50⭐)</button>
+                <div class="upgrade-item">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>⚡ VELOCIDADE</span>
+                        <span>Nível <span id="speedLevel">0</span></span>
                     </div>
-                    <div class="upgrade-item" style="margin-bottom: 15px;">
-                        <div style="display: flex; justify-content: space-between;">
-                            <span>🔄 CONTROLE</span>
-                            <span>Nível <span id="controlLevel">0</span></span>
-                        </div>
-                        <div style="background: #ddd; height: 8px; border-radius: 4px; margin: 10px 0;">
-                            <div id="controlProgress" style="width: 0%; height: 100%; background: #ff6b35; border-radius: 4px;"></div>
-                        </div>
-                        <button class="upgrade-btn" data-upgrade="control" style="width: 100%; padding: 10px; background: #4CAF50; color: white; border: none; border-radius: 8px;">MELHORAR (30⭐)</button>
+                    <div class="upgrade-bar">
+                        <div id="speedProgress" class="upgrade-progress" style="width: 0%"></div>
                     </div>
-                    <div class="upgrade-item" style="margin-bottom: 15px;">
-                        <div style="display: flex; justify-content: space-between;">
-                            <span>💪 DURABILIDADE</span>
-                            <span>Nível <span id="durabilityLevel">0</span></span>
-                        </div>
-                        <div style="background: #ddd; height: 8px; border-radius: 4px; margin: 10px 0;">
-                            <div id="durabilityProgress" style="width: 0%; height: 100%; background: #ff6b35; border-radius: 4px;"></div>
-                        </div>
-                        <button class="upgrade-btn" data-upgrade="durability" style="width: 100%; padding: 10px; background: #4CAF50; color: white; border: none; border-radius: 8px;">MELHORAR (45⭐)</button>
+                    <button class="upgrade-btn" data-upgrade="speed">MELHORAR (50⭐)</button>
+                </div>
+                <div class="upgrade-item">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>🔄 CONTROLE</span>
+                        <span>Nível <span id="controlLevel">0</span></span>
                     </div>
+                    <div class="upgrade-bar">
+                        <div id="controlProgress" class="upgrade-progress" style="width: 0%"></div>
+                    </div>
+                    <button class="upgrade-btn" data-upgrade="control">MELHORAR (30⭐)</button>
+                </div>
+                <div class="upgrade-item">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>💪 DURABILIDADE</span>
+                        <span>Nível <span id="durabilityLevel">0</span></span>
+                    </div>
+                    <div class="upgrade-bar">
+                        <div id="durabilityProgress" class="upgrade-progress" style="width: 0%"></div>
+                    </div>
+                    <button class="upgrade-btn" data-upgrade="durability">MELHORAR (45⭐)</button>
                 </div>
             </div>
-            <div class="action-buttons" style="display: flex; gap: 15px;">
-                <button id="createRoomBtn" class="btn-primary" style="flex: 1; background: #ff6b35; padding: 15px; border-radius: 12px;">🎮 CRIAR SALA</button>
-                <button id="joinRoomBtn" class="btn-secondary" style="flex: 1; background: #4CAF50; padding: 15px; border-radius: 12px;">🔗 ENTRAR EM SALA</button>
+            <div class="action-buttons">
+                <button id="createRoomBtn" class="btn-primary" style="flex: 1;">🎮 CRIAR SALA</button>
+                <button id="joinRoomBtn" class="btn-secondary" style="flex: 1;">🔗 ENTRAR EM SALA</button>
             </div>
         </div>
     </div>
@@ -222,49 +346,44 @@
             </div>
             <div class="players-list">
                 <h3>JOGADORES (<span id="currentPlayersCount">0</span>/<span id="maxPlayersCount">0</span>)</h3>
-                <ul id="playersList" style="list-style: none; padding: 0;"></ul>
+                <ul id="playersList"></ul>
             </div>
-            <button id="cancelRoomBtn" style="background: #dc3545; color: white; padding: 12px 30px; border-radius: 30px;">CANCELAR</button>
+            <button id="cancelRoomBtn" class="btn-exit">CANCELAR</button>
         </div>
     </div>
     
     <div id="raceResult" class="screen">
         <div class="container">
             <h2 id="resultTitle"></h2>
-            <p id="resultReward"></p>
-            <button id="backToGarageBtn" style="background: #ff6b35; color: white; padding: 12px 30px; border-radius: 30px;">VOLTAR</button>
+            <p id="resultReward" style="margin: 20px 0;"></p>
+            <button id="backToGarageBtn" class="btn-primary">VOLTAR</button>
         </div>
     </div>
     
-    <div id="joinModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 200;">
-        <div style="background: white; padding: 30px; border-radius: 32px; text-align: center; max-width: 400px;">
+    <div id="joinModal">
+        <div class="modal-content">
             <h3 style="color: #ff6b35;">🔗 ENTRAR NA SALA</h3>
             <p>Digite o código da sala:</p>
-            <input type="text" id="roomCodeInput" placeholder="Ex: ABCD" maxlength="4" style="text-transform: uppercase; padding: 12px; font-size: 1.2em; text-align: center; letter-spacing: 3px;">
-            <div style="display: flex; gap: 15px; margin-top: 20px;">
-                <button id="confirmJoinBtn" style="flex: 1; background: #ff6b35; color: white; padding: 12px; border-radius: 12px;">ENTRAR</button>
-                <button id="cancelJoinBtn" style="flex: 1; background: #dc3545; color: white; padding: 12px; border-radius: 12px;">CANCELAR</button>
+            <input type="text" id="roomCodeInput" placeholder="Ex: ABCD" maxlength="4" style="text-transform: uppercase;">
+            <div class="modal-buttons">
+                <button id="confirmJoinBtn" class="btn-primary">ENTRAR</button>
+                <button id="cancelJoinBtn" class="btn-exit">CANCELAR</button>
             </div>
         </div>
     </div>
-    
-    <!-- Three.js e dependências -->
-    <script type="importmap">
-        {
-            "imports": {
-                "three": "https://unpkg.com/three@0.128.0/build/three.module.js"
-            }
-        }
-    </script>
     
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     
+    <!-- Three.js (carregado como script normal, não módulo) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
     <!-- Scripts do Jogo -->
     <script src="js/firebase-config.js"></script>
     <script src="js/velocidades.js"></script>
-    <script src="js/player3d.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/player.js"></script>
     <script src="js/game3d.js"></script>
     <script src="js/room.js"></script>
     <script src="js/main.js"></script>
