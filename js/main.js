@@ -1,10 +1,6 @@
 // ==================== PONTO DE ENTRADA PRINCIPAL ====================
 
-let raceActive = false;
-let raceStarted = false;
-let gameOver = false;
-let keysPressed = {};
-let animationId = null;
+// Não declarar animationId aqui, ele já está no game3d.js
 
 document.addEventListener('DOMContentLoaded', () => {
     setupGlobalEventListeners();
@@ -62,40 +58,39 @@ function setupGlobalEventListeners() {
     window.addEventListener('keydown', (e) => {
         const key = e.key;
         
-        if (raceActive && !gameOver) {
+        if (typeof raceActive !== 'undefined' && raceActive && typeof gameOver !== 'undefined' && !gameOver) {
             if (key === 'ArrowDown' || key === 's' || key === 'S') {
                 e.preventDefault();
-                playerCar.isBraking = true;
+                if (typeof playerCar !== 'undefined') playerCar.isBraking = true;
             }
             if (key === 'ArrowLeft' || key === 'ArrowRight' || 
                 key === 'a' || key === 'A' || key === 'd' || key === 'D') {
                 e.preventDefault();
-                keysPressed[key.toLowerCase()] = true;
+                if (typeof keysPressed !== 'undefined') keysPressed[key.toLowerCase()] = true;
             }
         }
         
-        if (raceActive && key === 'Escape' && typeof exitRace === 'function') exitRace();
+        if (typeof raceActive !== 'undefined' && raceActive && key === 'Escape' && typeof exitRace === 'function') exitRace();
     });
     
     window.addEventListener('keyup', (e) => {
         const key = e.key;
         if (key === 'ArrowDown' || key === 's' || key === 'S') {
-            playerCar.isBraking = false;
+            if (typeof playerCar !== 'undefined') playerCar.isBraking = false;
         }
         const keyLower = key.toLowerCase();
-        if (keysPressed[keyLower]) delete keysPressed[keyLower];
+        if (typeof keysPressed !== 'undefined' && keysPressed[keyLower]) delete keysPressed[keyLower];
     });
     
-    // Prevenir que teclas afetem input
     if (playerNameInput) {
         playerNameInput.addEventListener('keydown', (e) => e.stopPropagation());
     }
 }
 
 function updateGamePhysics(delta) {
-    if (!raceActive || gameOver) return;
+    if (typeof raceActive === 'undefined' || !raceActive || typeof gameOver === 'undefined' || gameOver) return;
     
-    // Movimento vertical (descida)
+    // Movimento vertical
     const moveY = calcularMovimentoVertical(playerCar.velocidade, playerCar.isBraking, delta);
     playerCar.y += moveY;
     
@@ -133,12 +128,12 @@ function updateGamePhysics(delta) {
 
 function startRacePhysics() {
     applyUpgradesToCar();
-    raceActive = true;
-    gameOver = false;
+    if (typeof raceActive !== 'undefined') raceActive = true;
+    if (typeof gameOver !== 'undefined') gameOver = false;
     
     let lastTime = 0;
     function physicsLoop(time) {
-        if (!raceActive) return;
+        if (typeof raceActive === 'undefined' || !raceActive) return;
         const delta = Math.min(0.033, (time - lastTime) / 1000);
         lastTime = time;
         updateGamePhysics(delta);
@@ -148,8 +143,6 @@ function startRacePhysics() {
 }
 
 // Exportar para uso global
-window.raceActive = raceActive;
-window.gameOver = gameOver;
-window.keysPressed = keysPressed;
-window.startRacePhysics = startRacePhysics;
-window.otherPlayers = {};
+if (typeof window !== 'undefined') {
+    window.startRacePhysics = startRacePhysics;
+}
