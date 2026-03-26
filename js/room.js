@@ -135,7 +135,7 @@ function listenForPlayers(roomCode) {
             }
         }
         
-        if (playerCount === maxPlayers && !room.raceStarted) {
+        if (playerCount >= 1 && !room.raceStarted) {
             console.log(`🎯 TODOS OS ${playerCount} JOGADORES CONECTADOS! Iniciando contagem...`);
             
             await database.ref(`rooms/${roomCode}`).update({
