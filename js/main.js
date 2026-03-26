@@ -1,23 +1,37 @@
+// ==================== PONTO DE ENTRADA PRINCIPAL (3D) ====================
+
+let raceActive = false;
+let raceStarted = false;
+let gameOver = false;
+let keysPressed = {};
+let animationId = null;
+
 document.addEventListener('DOMContentLoaded', () => {
     setupGlobalEventListeners();
-    createFullscreenButton();
     createRoomConfigModal();
 });
 
 function setupGlobalEventListeners() {
+    // Login
     document.getElementById('loginBtn')?.addEventListener('click', login);
     document.getElementById('playerName')?.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') login();
     });
     
+    // Logout
     document.getElementById('logoutBtn')?.addEventListener('click', logout);
+    
+    // Corrida
     document.getElementById('exitRaceBtn')?.addEventListener('click', exitRace);
     document.getElementById('backToGarageBtn')?.addEventListener('click', backToGarage);
+    
+    // Sala
     document.getElementById('createRoomBtn')?.addEventListener('click', showConfigModal);
     document.getElementById('joinRoomBtn')?.addEventListener('click', showJoinModal);
     document.getElementById('confirmJoinBtn')?.addEventListener('click', joinRoom);
     document.getElementById('cancelJoinBtn')?.addEventListener('click', hideJoinModal);
     
+    // Upgrades
     document.querySelectorAll('.upgrade-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const upgrade = e.target.dataset.upgrade;
@@ -25,8 +39,10 @@ function setupGlobalEventListeners() {
         });
     });
     
+    // Controles do jogo
     window.addEventListener('keydown', (e) => {
         const key = e.key;
+        
         if (raceActive && !gameOver) {
             if (key === 'ArrowDown' || key === 's' || key === 'S') {
                 e.preventDefault();
@@ -38,6 +54,7 @@ function setupGlobalEventListeners() {
                 keysPressed[key.toLowerCase()] = true;
             }
         }
+        
         if (raceActive && key === 'Escape') exitRace();
     });
     
@@ -49,6 +66,65 @@ function setupGlobalEventListeners() {
         const keyLower = key.toLowerCase();
         if (keysPressed[keyLower]) delete keysPressed[keyLower];
     });
+}
+
+function updateGame3D(delta) {
+    if (!raceActive || gameOver) return;
     
-    document.getElementById('playerName')?.addEventListener('keydown', (e) => e.stopPropagation());
+    // Movimento vertical
+    const moveY = calcularMovimentoVertical(playerCar.velocidade, playerCar.isBraking, delta);
+    playerCar.y += moveY;
+    
+    // Velocidade
+    if (playerCar.isBraking) {
+        playerCar.velocidade = Math.max(VELOCIDADES.movimentoVertical.velocidadeMinima, 
+            playerCar.velocidade - VELOCIDADES.movimentoVertical.forcaFreio * delta);
+    } else {
+        playerCar.velocidade += VELOCIDADES.carrinho.aceleracaoGravidade * delta;
+    }
+    
+    playerCar.y = Math.max(TOP_Y, Math.min(BOTTOM_Y, playerCar.y));
+    
+    let velMax = calcularVelocidadeMaximaAtual(playerCar.distancia, VELOCIDADES.carrinho.velocidadeMaximaBase);
+    playerCar.velocidade = Math.min(velMax, Math.max(VELOCIDADES.movimentoVertical.velocidadeMinima, playerCar.velocidade));
+    playerCar.distancia += calcularPontuacao(playerCar.velocidade, delta);
+    
+    // Movimento horizontal
+    let moveX = 0;
+    if (keysPressed['arrowleft'] || keysPressed['a']) moveX = -1;
+    if (keysPressed['arrowright'] || keysPressed['d']) moveX = 1;
+    
+    if (moveX !== 0) {
+        const moveSpeed = calcularVelocidadeLateral(playerCar.velocidade, velMax);
+        playerCar.x += moveX * moveSpeed;
+        playerCar.x = Math.max(ROAD_LEFT, Math.min(ROAD_RIGHT - playerCar.width, playerCar.x));
+    }
+    
+    // Colisões (simplificado para 3D)
+    if (!invincible) {
+        // Verificar colisão com obstáculos 3D
+    }
+    
+    if (invincible) {
+        invincibleTimer -= delta;
+        if (invincibleTimer <= 0) invincible = false;
+    }
+}
+
+function startRace() {
+    applyUpgradesToCar3D();
+    startGame3D();
+    raceActive = true;
+    gameOver = false;
+    
+    // Iniciar loop de física
+    let lastTime = 0;
+    function physicsLoop(time) {
+        if (!raceActive) return;
+        const delta = Math.min(0.033, (time - lastTime) / 1000);
+        lastTime = time;
+        updateGame3D(delta);
+        requestAnimationFrame(physicsLoop);
+    }
+    requestAnimationFrame(physicsLoop);
 }
