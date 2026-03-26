@@ -1,6 +1,8 @@
+// ==================== CONFIGURAÇÃO DE VELOCIDADES ====================
+
 const VELOCIDADES = {
     carrinho: {
-        velocidadeInicial: 70,
+        velocidadeInicial: 0,
         velocidadeMaximaBase: 380,
         aceleracaoGravidade: 1.3,
         velocidadeMaximaFinal: 550,
@@ -35,9 +37,19 @@ const VELOCIDADES = {
     },
     pontuacao: {
         multiplicadorDistancia: 0.22,
+    },
+    // NOVAS CONFIGURAÇÕES DE PISTA
+    pista: {
+        comprimentoBase: 1000,      // metros base
+        comprimentoMaximo: 5000,    // metros máximo
+        ondulacaoFrequencia: 0.05,  // frequência das ondulações
+        ondulacaoAmplitude: 0.3,    // altura das ondulações
+        curvaFrequencia: 0.03,      // frequência das curvas
+        curvaAmplitude: 1.5,        // intensidade das curvas
     }
 };
 
+// Funções existentes mantidas...
 function calcularVelocidadeLateral(velocidadeCarro, velocidadeMaxima) {
     const config = VELOCIDADES.movimentoLateral;
     const proporcao = Math.min(1, velocidadeCarro / velocidadeMaxima);
@@ -75,4 +87,20 @@ function calcularMovimentoVertical(velocidade, isBraking, delta) {
     const config = VELOCIDADES.movimentoVertical;
     if (isBraking) return -velocidade * delta * config.fatorSubidaFreio;
     return velocidade * delta * config.fatorDescida;
+}
+
+// NOVA FUNÇÃO: Calcular altura da pista baseada na posição
+function calcularAlturaPista(posicaoZ) {
+    const config = VELOCIDADES.pista;
+    // Ondulações senoidais para dar relevo
+    const ondulacao = Math.sin(posicaoZ * config.ondulacaoFrequencia) * config.ondulacaoAmplitude;
+    // Pequenas variações adicionais
+    const microOndulacao = Math.sin(posicaoZ * config.ondulacaoFrequencia * 3) * 0.1;
+    return ondulacao + microOndulacao;
+}
+
+// NOVA FUNÇÃO: Calcular curva da pista
+function calcularCurvaPista(posicaoZ) {
+    const config = VELOCIDADES.pista;
+    return Math.sin(posicaoZ * config.curvaFrequencia) * config.curvaAmplitude;
 }
