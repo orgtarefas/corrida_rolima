@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Carrinho de Rolimã - Descida da Ladeira</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Tela de Login -->
+        <div id="loginScreen" class="screen active">
+            <div class="logo-area">
+                <h1>🏎️ CARRINHO DE ROLIMÃ</h1>
+                <p>Descida da Ladeira! Corrida Online!</p>
+            </div>
+            <div class="login-form">
+                <input type="text" id="playerName" placeholder="Seu nome" maxlength="20">
+                <button id="loginBtn" class="btn-primary">ENTRAR NA CORRIDA</button>
+            </div>
+        </div>
+
+        <!-- Tela Principal (Garagem) -->
+        <div id="garageScreen" class="screen">
+            <div class="header">
+                <div class="player-info">
+                    <h2 id="playerNameDisplay"></h2>
+                    <div class="stats">
+                        <span>🏆 Vitórias: <span id="winsCount">0</span></span>
+                        <span>⭐ Pontos: <span id="pointsCount">0</span></span>
+                    </div>
+                </div>
+                <button id="logoutBtn" class="btn-small">Sair</button>
+            </div>
+
+            <div class="garage-content">
+                <div class="car-preview">
+                    <canvas id="carCanvas" width="400" height="300"></canvas>
+                </div>
+
+                <div class="upgrades-panel">
+                    <h3>🔧 UPGRADES</h3>
+                    <div class="upgrade-list">
+                        <div class="upgrade-item">
+                            <div class="upgrade-info">
+                                <span class="upgrade-name">⚡ VELOCIDADE</span>
+                                <span class="upgrade-level">Nível <span id="speedLevel">0</span></span>
+                            </div>
+                            <div class="upgrade-bar">
+                                <div class="upgrade-progress" id="speedProgress" style="width: 0%"></div>
+                            </div>
+                            <button class="upgrade-btn" data-upgrade="speed">MELHORAR (50⭐)</button>
+                        </div>
+
+                        <div class="upgrade-item">
+                            <div class="upgrade-info">
+                                <span class="upgrade-name">🔄 CONTROLE</span>
+                                <span class="upgrade-level">Nível <span id="controlLevel">0</span></span>
+                            </div>
+                            <div class="upgrade-bar">
+                                <div class="upgrade-progress" id="controlProgress" style="width: 0%"></div>
+                            </div>
+                            <button class="upgrade-btn" data-upgrade="control">MELHORAR (30⭐)</button>
+                        </div>
+
+                        <div class="upgrade-item">
+                            <div class="upgrade-info">
+                                <span class="upgrade-name">💪 DURABILIDADE</span>
+                                <span class="upgrade-level">Nível <span id="durabilityLevel">0</span></span>
+                            </div>
+                            <div class="upgrade-bar">
+                                <div class="upgrade-progress" id="durabilityProgress" style="width: 0%"></div>
+                            </div>
+                            <button class="upgrade-btn" data-upgrade="durability">MELHORAR (45⭐)</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button id="createRoomBtn" class="btn-primary">🎮 CRIAR SALA</button>
+                    <button id="joinRoomBtn" class="btn-secondary">🔗 ENTRAR EM SALA</button>
+                </div>
+
+                <div id="joinModal" class="modal hidden">
+                    <div class="modal-content">
+                        <h3>🔗 ENTRAR NA SALA</h3>
+                        <p>Digite o código da sala:</p>
+                        <input type="text" id="roomCodeInput" placeholder="Ex: ABCD" maxlength="4" style="text-transform: uppercase">
+                        <div class="modal-buttons">
+                            <button id="confirmJoinBtn" class="btn-primary">ENTRAR</button>
+                            <button id="cancelJoinBtn" class="btn-exit">CANCELAR</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tela de Corrida -->
+        <div id="raceScreen" class="screen">
+            <div class="race-header">
+                <div class="race-info">
+                    <span>🏁 DESCENDO A LADEIRA</span>
+                </div>
+            </div>
+            <canvas id="gameCanvas" width="800" height="500"></canvas>
+            <div class="race-controls">
+                <div class="control-hint">
+                    <span>← A / → D = Desviar</span>
+                    <span>↓ S = Frear (sobe)</span>
+                </div>
+                <button id="exitRaceBtn" class="btn-exit">SAIR</button>
+            </div>
+            <div id="raceResult" class="race-result hidden">
+                <h2 id="resultTitle"></h2>
+                <p id="resultReward"></p>
+                <button id="backToGarageBtn">VOLTAR</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <!-- Scripts do Jogo -->
+    <script src="js/firebase-config.js"></script>
+    <script src="js/velocidades.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/player.js"></script>
+    <script src="js/obstacles.js"></script>
+    <script src="js/render.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/room.js"></script>
+    <script src="js/gameLoop.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
