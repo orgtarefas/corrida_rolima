@@ -12,29 +12,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function setupGlobalEventListeners() {
     // Login
-    document.getElementById('loginBtn')?.addEventListener('click', login);
-    document.getElementById('playerName')?.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') login();
-    });
+    const loginBtn = document.getElementById('loginBtn');
+    const playerNameInput = document.getElementById('playerName');
+    
+    if (loginBtn) loginBtn.addEventListener('click', login);
+    if (playerNameInput) {
+        playerNameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') login();
+        });
+    }
     
     // Logout
-    document.getElementById('logoutBtn')?.addEventListener('click', logout);
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) logoutBtn.addEventListener('click', logout);
     
     // Corrida
-    document.getElementById('exitRaceBtn')?.addEventListener('click', () => {
+    const exitRaceBtn = document.getElementById('exitRaceBtn');
+    const backToGarageBtn = document.getElementById('backToGarageBtn');
+    
+    if (exitRaceBtn) exitRaceBtn.addEventListener('click', () => {
         if (typeof exitRace === 'function') exitRace();
     });
-    document.getElementById('backToGarageBtn')?.addEventListener('click', () => {
+    if (backToGarageBtn) backToGarageBtn.addEventListener('click', () => {
         if (typeof backToGarage === 'function') backToGarage();
     });
     
     // Sala
-    document.getElementById('createRoomBtn')?.addEventListener('click', showConfigModal);
-    document.getElementById('joinRoomBtn')?.addEventListener('click', showJoinModal);
-    document.getElementById('confirmJoinBtn')?.addEventListener('click', () => {
+    const createRoomBtn = document.getElementById('createRoomBtn');
+    const joinRoomBtn = document.getElementById('joinRoomBtn');
+    const confirmJoinBtn = document.getElementById('confirmJoinBtn');
+    const cancelJoinBtn = document.getElementById('cancelJoinBtn');
+    
+    if (createRoomBtn) createRoomBtn.addEventListener('click', showConfigModal);
+    if (joinRoomBtn) joinRoomBtn.addEventListener('click', showJoinModal);
+    if (confirmJoinBtn) confirmJoinBtn.addEventListener('click', () => {
         if (typeof joinRoom === 'function') joinRoom();
     });
-    document.getElementById('cancelJoinBtn')?.addEventListener('click', hideJoinModal);
+    if (cancelJoinBtn) cancelJoinBtn.addEventListener('click', hideJoinModal);
     
     // Upgrades
     document.querySelectorAll('.upgrade-btn').forEach(btn => {
@@ -71,12 +85,17 @@ function setupGlobalEventListeners() {
         const keyLower = key.toLowerCase();
         if (keysPressed[keyLower]) delete keysPressed[keyLower];
     });
+    
+    // Prevenir que teclas afetem input
+    if (playerNameInput) {
+        playerNameInput.addEventListener('keydown', (e) => e.stopPropagation());
+    }
 }
 
 function updateGamePhysics(delta) {
     if (!raceActive || gameOver) return;
     
-    // Movimento vertical
+    // Movimento vertical (descida)
     const moveY = calcularMovimentoVertical(playerCar.velocidade, playerCar.isBraking, delta);
     playerCar.y += moveY;
     
@@ -133,3 +152,4 @@ window.raceActive = raceActive;
 window.gameOver = gameOver;
 window.keysPressed = keysPressed;
 window.startRacePhysics = startRacePhysics;
+window.otherPlayers = {};
