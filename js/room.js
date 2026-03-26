@@ -6,9 +6,11 @@ let roomListener = null;
 let playersListener = null;
 let positionSyncInterval = null;
 let otherPlayers = {};
+let raceTotalDistance = 1000;
 
-async function createRoomWithConfig(maxPlayers) {
+async function createRoomWithConfig(maxPlayers, distance) {
     if (!currentPlayer) return;
+    raceTotalDistance = distance;
     
     try {
         const roomCode = generateRoomCode();
@@ -19,6 +21,7 @@ async function createRoomWithConfig(maxPlayers) {
             code: roomCode,
             status: 'waiting',
             maxPlayers: maxPlayers,
+            raceDistance: distance,
             players: {
                 [currentPlayer.name]: {
                     name: currentPlayer.name,
@@ -27,7 +30,7 @@ async function createRoomWithConfig(maxPlayers) {
                     x: 400,
                     y: TOP_Y,
                     distancia: 0,
-                    velocidade: 70
+                    velocidade: 0
                 }
             },
             createdAt: Date.now(),
@@ -35,20 +38,19 @@ async function createRoomWithConfig(maxPlayers) {
         };
         
         await database.ref(`rooms/${roomCode}`).set(roomData);
-        console.log(`✅ Sala criada: ${roomCode} para ${maxPlayers} jogadores`);
+        console.log(`✅ Sala criada: ${roomCode} | ${distance}m | ${maxPlayers} jogadores`);
         
-        // Aguardar um momento para garantir que os dados foram salvos
         await new Promise(resolve => setTimeout(resolve, 500));
         
         listenForPlayers(roomCode);
         showWaitingRoom(roomCode);
         
         await navigator.clipboard.writeText(roomCode);
-        alert(`Sala criada! Código: ${roomCode}\nMáximo: ${maxPlayers} jogadores\nCompartilhe o código com seus amigos!`);
+        alert(`Sala criada!\nCódigo: ${roomCode}\nDistância: ${distance}m\nMáximo: ${maxPlayers} jogadores`);
         
     } catch (error) {
         console.error('Erro ao criar sala:', error);
-        alert('Erro ao criar sala. Verifique as regras do Firebase.');
+        alert('Erro ao criar sala.');
     }
 }
 
@@ -63,27 +65,17 @@ async function joinRoom() {
         const roomRef = database.ref(`rooms/${roomCode}`);
         const room = (await roomRef.once('value')).val();
         
-        if (!room) { 
-            alert('Sala não encontrada! Verifique o código.'); 
-            return; 
-        }
-        
-        if (room.raceStarted) { 
-            alert('Esta corrida já começou!'); 
-            return; 
-        }
+        if (!room) { alert('Sala não encontrada!'); return; }
+        if (room.raceStarted) { alert('Corrida já começou!'); return; }
         
         const playerCount = Object.keys(room.players || {}).length;
         const maxPlayers = room.maxPlayers || 2;
         
-        if (playerCount >= maxPlayers) { 
-            alert(`Sala cheia! (${maxPlayers}/${maxPlayers})`); 
-            return; 
-        }
+        if (playerCount >= maxPlayers) { alert(`Sala cheia! (${maxPlayers}/${maxPlayers})`); return; }
         
         currentRoomId = roomCode;
+        raceTotalDistance = room.raceDistance || 1000;
         
-        // Adicionar jogador à sala
         await roomRef.child(`players/${currentPlayer.name}`).set({
             name: currentPlayer.name,
             ready: true,
@@ -91,7 +83,7 @@ async function joinRoom() {
             x: 400,
             y: TOP_Y,
             distancia: 0,
-            velocidade: 70
+            velocidade: 0
         });
         
         console.log(`✅ Jogador ${currentPlayer.name} entrou na sala ${roomCode}`);
@@ -101,8 +93,8 @@ async function joinRoom() {
         showWaitingRoom(roomCode);
         
     } catch (error) {
-        console.error('Erro ao entrar na sala:', error);
-        alert('Erro ao entrar na sala. Tente novamente.');
+        console.error('Erro:', error);
+        alert('Erro ao entrar na sala.');
     }
 }
 
@@ -120,7 +112,6 @@ function listenForPlayers(roomCode) {
         
         console.log(`👥 Sala ${roomCode}: ${playerCount}/${maxPlayers} jogadores`);
         
-        // Atualizar UI da sala de espera
         const currentSpan = document.getElementById('currentPlayersCount');
         const maxSpan = document.getElementById('maxPlayersCount');
         const playersList = document.getElementById('playersList');
@@ -137,35 +128,25 @@ function listenForPlayers(roomCode) {
             }
         }
         
-        // Atualizar outros jogadores
         otherPlayers = {};
         for (let [name, data] of Object.entries(players)) {
             if (name !== currentPlayer.name) {
-                otherPlayers[name] = { 
-                    ...data, 
-                    y: data.y || TOP_Y,
-                    distancia: data.distancia || 0
-                };
+                otherPlayers[name] = { ...data, y: data.y || TOP_Y, distancia: data.distancia || 0 };
             }
         }
         
-        // INICIAR CORRIDA QUANDO TODOS ESTIVEREM NA SALA
         if (playerCount === maxPlayers && !room.raceStarted) {
-            console.log(`🎯 TODOS OS ${playerCount} JOGADORES CONECTADOS! Iniciando corrida...`);
+            console.log(`🎯 TODOS OS ${playerCount} JOGADORES CONECTADOS! Iniciando contagem...`);
             
-            // Marcar que a corrida começou
             await database.ref(`rooms/${roomCode}`).update({
                 raceStarted: true,
                 status: 'racing',
                 startTime: Date.now()
             });
             
-            // Pequeno delay para garantir que todos os dados foram salvos
             setTimeout(() => {
                 startRaceOnline(roomCode);
             }, 500);
-        } else if (playerCount < maxPlayers && !room.raceStarted) {
-            console.log(`⏳ Aguardando mais ${maxPlayers - playerCount} jogador(es)...`);
         }
     });
 }
@@ -173,36 +154,28 @@ function listenForPlayers(roomCode) {
 async function startRaceOnline(roomCode) {
     if (!currentPlayer) return;
     
-    console.log(`🏁 INICIANDO CORRIDA NA SALA ${roomCode}...`);
+    console.log(`🏁 INICIANDO CORRIDA DE ${raceTotalDistance}m NA SALA ${roomCode}...`);
     
-    // Limpar listener da sala de espera
-    if (roomListener) {
-        database.ref(`rooms/${roomCode}`).off('value', roomListener);
-    }
+    if (roomListener) database.ref(`rooms/${roomCode}`).off('value', roomListener);
     
-    // Esconder tela de espera
     const waitingScreen = document.getElementById('waitingScreen');
     if (waitingScreen) waitingScreen.classList.remove('active');
     
-    // Resetar estado do jogo
     gameOver = false;
     raceResultShown = false;
     obstacles = [];
     raceStarted = true;
     raceActive = true;
     
-    // Aplicar upgrades ao carro
     applyUpgradesToCar();
+    playerCar.velocidade = 0;
+    playerCar.distancia = 0;
     invincible = false;
     invincibleTimer = 0;
     
-    // Buscar TODOS os jogadores da sala
     const room = (await database.ref(`rooms/${roomCode}`).once('value')).val();
     const allPlayers = room?.players || {};
     
-    console.log(`👥 Jogadores na sala: ${Object.keys(allPlayers).length}`, Object.keys(allPlayers));
-    
-    // Criar estrutura da corrida com todos os jogadores
     const racePlayers = {};
     for (let [name, data] of Object.entries(allPlayers)) {
         racePlayers[name] = {
@@ -210,20 +183,19 @@ async function startRaceOnline(roomCode) {
             x: data.x || 400,
             y: data.y || TOP_Y,
             distancia: 0,
-            velocidade: VELOCIDADES.carrinho.velocidadeInicial,
+            velocidade: 0,
             durability: 100,
             active: true
         };
     }
     
-    // Salvar todos os jogadores na corrida
     await database.ref(`races/${roomCode}`).set({
         roomCode: roomCode,
         players: racePlayers,
+        raceDistance: raceTotalDistance,
         startTime: Date.now()
     });
     
-    // Ouvir atualizações dos outros jogadores
     const playersRef = database.ref(`races/${roomCode}/players`);
     playersListener = playersRef.on('value', (snapshot) => {
         const players = snapshot.val() || {};
@@ -233,12 +205,11 @@ async function startRaceOnline(roomCode) {
                 otherPlayers[name] = data;
             }
         }
-        console.log(`👥 Atualização: ${Object.keys(players).length} jogadores na corrida | Outros: ${Object.keys(otherPlayers).length}`);
+        console.log(`👥 Corrida: ${Object.keys(players).length} jogadores`);
     });
     
-    // Iniciar jogo 3D e física
     if (typeof startGame3D === 'function') {
-        startGame3D();
+        startGame3D(raceTotalDistance);
     }
     if (typeof startRacePhysics === 'function') {
         startRacePhysics();
@@ -246,7 +217,7 @@ async function startRaceOnline(roomCode) {
     
     startPositionSync(roomCode);
     
-    console.log('🏁 CORRIDA INICIADA!');
+    console.log('🏁 CORRIDA PRONTA! AGUARDANDO SINAL VERDE...');
 }
 
 function startPositionSync(roomCode) {
@@ -263,9 +234,7 @@ function startPositionSync(roomCode) {
                     durability: playerCar.durability,
                     lastUpdate: Date.now()
                 });
-            } catch (e) {
-                console.warn('Erro ao sincronizar:', e);
-            }
+            } catch (e) { console.warn(e); }
         }
     }, 50);
 }
@@ -273,16 +242,18 @@ function startPositionSync(roomCode) {
 function showWaitingRoom(roomCode) {
     const waitingScreen = document.getElementById('waitingScreen');
     const roomCodeDisplay = document.getElementById('roomCodeDisplay');
+    const maxSpan = document.getElementById('maxPlayersCount');
+    
     if (roomCodeDisplay) roomCodeDisplay.textContent = roomCode;
+    if (maxSpan && currentRoom) maxSpan.textContent = currentRoom.maxPlayers || 2;
+    
     showScreen('waitingScreen');
 }
 
 async function cancelRoom() {
     if (currentRoomId) {
         await database.ref(`rooms/${currentRoomId}`).remove();
-        if (roomListener) {
-            database.ref(`rooms/${currentRoomId}`).off('value', roomListener);
-        }
+        if (roomListener) database.ref(`rooms/${currentRoomId}`).off('value', roomListener);
         currentRoomId = null;
     }
     showScreen('garageScreen');
