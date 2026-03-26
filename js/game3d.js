@@ -471,6 +471,6 @@ function startGame3D(raceLength = 1000) {
     init3D(raceLength);
 }
 
-// Exportar
+// Exportar para window
 window.startGame3D = startGame3D;
 window.stopGame3D = stopGame3D;
