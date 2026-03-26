@@ -379,6 +379,12 @@
     
     <!-- Three.js -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+    <script>
+        // Fallback se o CDN falhar
+        if (typeof THREE === 'undefined') {
+            document.write('<script src="https://unpkg.com/three@0.128.0/build/three.min.js"><\/script>');
+        }
+    </script>
     
     <!-- Scripts do Jogo -->
     <script src="js/firebase-config.js"></script>
