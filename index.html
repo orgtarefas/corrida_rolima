@@ -3,121 +3,260 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Carrinho de Rolimã - Descida da Ladeira</title>
+    <title>Carrinho de Rolimã 3D - Descida da Ladeira</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Poppins', 'Segoe UI', sans-serif;
+        }
+        
+        /* Interface sobreposta ao canvas 3D */
+        .ui-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+        
+        /* Telas do jogo (ficam sobre o 3D) */
+        .screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(10px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            pointer-events: auto;
+        }
+        
+        .screen.active {
+            display: flex;
+        }
+        
+        .container {
+            background: rgba(255,255,255,0.95);
+            border-radius: 32px;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            animation: slideUp 0.3s ease;
+        }
+        
+        /* UI do jogo (HUD) */
+        .game-hud {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(5px);
+            border-radius: 16px;
+            padding: 15px 25px;
+            color: white;
+            font-family: monospace;
+            z-index: 20;
+            pointer-events: none;
+            border-left: 4px solid #ff6b35;
+        }
+        
+        .game-hud p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        
+        .game-hud .speed {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ff6b35;
+        }
+        
+        .race-controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(5px);
+            border-radius: 40px;
+            padding: 10px 20px;
+            display: flex;
+            gap: 20px;
+            z-index: 20;
+            pointer-events: auto;
+        }
+        
+        .control-hint {
+            color: white;
+            font-size: 12px;
+            display: flex;
+            gap: 15px;
+        }
+        
+        .control-hint span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        button {
+            pointer-events: auto;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Tela de Login -->
-        <div id="loginScreen" class="screen active">
+    <!-- Canvas 3D -->
+    <div id="canvas-container" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%;"></div>
+    
+    <!-- Interface do jogo (HUD) -->
+    <div class="game-hud" id="gameHud" style="display: none;">
+        <p>🏁 DISTÂNCIA: <span id="distanceDisplay">0</span>m</p>
+        <p>⚡ VELOCIDADE: <span id="speedDisplay" class="speed">0</span> km/h</p>
+        <p>💪 INTEGRIDADE: <span id="durabilityDisplay">100</span>%</p>
+        <p>🏆 POSIÇÃO: <span id="positionDisplay">1</span>º</p>
+    </div>
+    
+    <div class="race-controls" id="raceControls" style="display: none;">
+        <div class="control-hint">
+            <span>← A / → D = Desviar</span>
+            <span>↓ S = Frear (sobe)</span>
+        </div>
+        <button id="exitRaceBtn" style="background: #dc3545; color: white; border: none; padding: 8px 20px; border-radius: 30px; cursor: pointer;">SAIR</button>
+    </div>
+    
+    <!-- Telas do jogo -->
+    <div id="loginScreen" class="screen active">
+        <div class="container">
             <div class="logo-area">
-                <h1>🏎️ CARRINHO DE ROLIMÃ</h1>
-                <p>Descida da Ladeira! Corrida Online!</p>
+                <h1 style="color: #ff6b35;">🏎️ CARRINHO DE ROLIMÃ 3D</h1>
+                <p style="color: #666;">Descida da Ladeira! Corrida Online!</p>
             </div>
-            <div class="login-form">
-                <input type="text" id="playerName" placeholder="Seu nome" maxlength="20">
-                <button id="loginBtn" class="btn-primary">ENTRAR NA CORRIDA</button>
-            </div>
-        </div>
-
-        <!-- Tela Principal (Garagem) -->
-        <div id="garageScreen" class="screen">
-            <div class="header">
-                <div class="player-info">
-                    <h2 id="playerNameDisplay"></h2>
-                    <div class="stats">
-                        <span>🏆 Vitórias: <span id="winsCount">0</span></span>
-                        <span>⭐ Pontos: <span id="pointsCount">0</span></span>
-                    </div>
-                </div>
-                <button id="logoutBtn" class="btn-small">Sair</button>
-            </div>
-
-            <div class="garage-content">
-                <div class="car-preview">
-                    <canvas id="carCanvas" width="400" height="300"></canvas>
-                </div>
-
-                <div class="upgrades-panel">
-                    <h3>🔧 UPGRADES</h3>
-                    <div class="upgrade-list">
-                        <div class="upgrade-item">
-                            <div class="upgrade-info">
-                                <span class="upgrade-name">⚡ VELOCIDADE</span>
-                                <span class="upgrade-level">Nível <span id="speedLevel">0</span></span>
-                            </div>
-                            <div class="upgrade-bar">
-                                <div class="upgrade-progress" id="speedProgress" style="width: 0%"></div>
-                            </div>
-                            <button class="upgrade-btn" data-upgrade="speed">MELHORAR (50⭐)</button>
-                        </div>
-
-                        <div class="upgrade-item">
-                            <div class="upgrade-info">
-                                <span class="upgrade-name">🔄 CONTROLE</span>
-                                <span class="upgrade-level">Nível <span id="controlLevel">0</span></span>
-                            </div>
-                            <div class="upgrade-bar">
-                                <div class="upgrade-progress" id="controlProgress" style="width: 0%"></div>
-                            </div>
-                            <button class="upgrade-btn" data-upgrade="control">MELHORAR (30⭐)</button>
-                        </div>
-
-                        <div class="upgrade-item">
-                            <div class="upgrade-info">
-                                <span class="upgrade-name">💪 DURABILIDADE</span>
-                                <span class="upgrade-level">Nível <span id="durabilityLevel">0</span></span>
-                            </div>
-                            <div class="upgrade-bar">
-                                <div class="upgrade-progress" id="durabilityProgress" style="width: 0%"></div>
-                            </div>
-                            <button class="upgrade-btn" data-upgrade="durability">MELHORAR (45⭐)</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="action-buttons">
-                    <button id="createRoomBtn" class="btn-primary">🎮 CRIAR SALA</button>
-                    <button id="joinRoomBtn" class="btn-secondary">🔗 ENTRAR EM SALA</button>
-                </div>
-
-                <div id="joinModal" class="modal hidden">
-                    <div class="modal-content">
-                        <h3>🔗 ENTRAR NA SALA</h3>
-                        <p>Digite o código da sala:</p>
-                        <input type="text" id="roomCodeInput" placeholder="Ex: ABCD" maxlength="4" style="text-transform: uppercase">
-                        <div class="modal-buttons">
-                            <button id="confirmJoinBtn" class="btn-primary">ENTRAR</button>
-                            <button id="cancelJoinBtn" class="btn-exit">CANCELAR</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Tela de Corrida -->
-        <div id="raceScreen" class="screen">
-            <div class="race-header">
-                <div class="race-info">
-                    <span>🏁 DESCENDO A LADEIRA</span>
-                </div>
-            </div>
-            <canvas id="gameCanvas" width="800" height="500"></canvas>
-            <div class="race-controls">
-                <div class="control-hint">
-                    <span>← A / → D = Desviar</span>
-                    <span>↓ S = Frear (sobe)</span>
-                </div>
-                <button id="exitRaceBtn" class="btn-exit">SAIR</button>
-            </div>
-            <div id="raceResult" class="race-result hidden">
-                <h2 id="resultTitle"></h2>
-                <p id="resultReward"></p>
-                <button id="backToGarageBtn">VOLTAR</button>
+            <div class="login-form" style="display: flex; flex-direction: column; gap: 15px;">
+                <input type="text" id="playerName" placeholder="Seu nome" maxlength="20" style="padding: 12px; border-radius: 12px; border: 2px solid #ddd;">
+                <button id="loginBtn" class="btn-primary" style="background: #ff6b35; color: white; padding: 12px; border-radius: 12px; border: none; font-weight: bold;">ENTRAR NA CORRIDA</button>
             </div>
         </div>
     </div>
-
+    
+    <div id="garageScreen" class="screen">
+        <div class="container">
+            <div class="header" style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                <h2 id="playerNameDisplay"></h2>
+                <button id="logoutBtn" class="btn-small" style="background: #ddd; padding: 8px 20px; border-radius: 20px;">Sair</button>
+            </div>
+            <div class="stats" style="display: flex; gap: 20px; justify-content: center; margin-bottom: 30px;">
+                <span>🏆 Vitórias: <span id="winsCount">0</span></span>
+                <span>⭐ Pontos: <span id="pointsCount">0</span></span>
+            </div>
+            <div class="upgrades-panel" style="background: #f5f5f5; border-radius: 20px; padding: 20px; margin-bottom: 20px;">
+                <h3>🔧 UPGRADES</h3>
+                <div class="upgrade-list">
+                    <div class="upgrade-item" style="margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>⚡ VELOCIDADE</span>
+                            <span>Nível <span id="speedLevel">0</span></span>
+                        </div>
+                        <div style="background: #ddd; height: 8px; border-radius: 4px; margin: 10px 0;">
+                            <div id="speedProgress" style="width: 0%; height: 100%; background: #ff6b35; border-radius: 4px;"></div>
+                        </div>
+                        <button class="upgrade-btn" data-upgrade="speed" style="width: 100%; padding: 10px; background: #4CAF50; color: white; border: none; border-radius: 8px;">MELHORAR (50⭐)</button>
+                    </div>
+                    <div class="upgrade-item" style="margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>🔄 CONTROLE</span>
+                            <span>Nível <span id="controlLevel">0</span></span>
+                        </div>
+                        <div style="background: #ddd; height: 8px; border-radius: 4px; margin: 10px 0;">
+                            <div id="controlProgress" style="width: 0%; height: 100%; background: #ff6b35; border-radius: 4px;"></div>
+                        </div>
+                        <button class="upgrade-btn" data-upgrade="control" style="width: 100%; padding: 10px; background: #4CAF50; color: white; border: none; border-radius: 8px;">MELHORAR (30⭐)</button>
+                    </div>
+                    <div class="upgrade-item" style="margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>💪 DURABILIDADE</span>
+                            <span>Nível <span id="durabilityLevel">0</span></span>
+                        </div>
+                        <div style="background: #ddd; height: 8px; border-radius: 4px; margin: 10px 0;">
+                            <div id="durabilityProgress" style="width: 0%; height: 100%; background: #ff6b35; border-radius: 4px;"></div>
+                        </div>
+                        <button class="upgrade-btn" data-upgrade="durability" style="width: 100%; padding: 10px; background: #4CAF50; color: white; border: none; border-radius: 8px;">MELHORAR (45⭐)</button>
+                    </div>
+                </div>
+            </div>
+            <div class="action-buttons" style="display: flex; gap: 15px;">
+                <button id="createRoomBtn" class="btn-primary" style="flex: 1; background: #ff6b35; padding: 15px; border-radius: 12px;">🎮 CRIAR SALA</button>
+                <button id="joinRoomBtn" class="btn-secondary" style="flex: 1; background: #4CAF50; padding: 15px; border-radius: 12px;">🔗 ENTRAR EM SALA</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="waitingScreen" class="screen">
+        <div class="container">
+            <h2 style="color: #ff6b35;">🎮 AGUARDANDO JOGADORES</h2>
+            <div style="background: #f5f5f5; padding: 20px; border-radius: 20px; margin: 20px 0;">
+                <span>CÓDIGO:</span>
+                <h1 id="roomCodeDisplay" style="font-size: 3em; letter-spacing: 5px; color: #ff6b35;"></h1>
+                <button id="copyCodeBtn" style="background: #4CAF50; color: white; padding: 8px 20px; border-radius: 20px;">📋 COPIAR</button>
+            </div>
+            <div class="players-list">
+                <h3>JOGADORES (<span id="currentPlayersCount">0</span>/<span id="maxPlayersCount">0</span>)</h3>
+                <ul id="playersList" style="list-style: none; padding: 0;"></ul>
+            </div>
+            <button id="cancelRoomBtn" style="background: #dc3545; color: white; padding: 12px 30px; border-radius: 30px;">CANCELAR</button>
+        </div>
+    </div>
+    
+    <div id="raceResult" class="screen">
+        <div class="container">
+            <h2 id="resultTitle"></h2>
+            <p id="resultReward"></p>
+            <button id="backToGarageBtn" style="background: #ff6b35; color: white; padding: 12px 30px; border-radius: 30px;">VOLTAR</button>
+        </div>
+    </div>
+    
+    <div id="joinModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 200;">
+        <div style="background: white; padding: 30px; border-radius: 32px; text-align: center; max-width: 400px;">
+            <h3 style="color: #ff6b35;">🔗 ENTRAR NA SALA</h3>
+            <p>Digite o código da sala:</p>
+            <input type="text" id="roomCodeInput" placeholder="Ex: ABCD" maxlength="4" style="text-transform: uppercase; padding: 12px; font-size: 1.2em; text-align: center; letter-spacing: 3px;">
+            <div style="display: flex; gap: 15px; margin-top: 20px;">
+                <button id="confirmJoinBtn" style="flex: 1; background: #ff6b35; color: white; padding: 12px; border-radius: 12px;">ENTRAR</button>
+                <button id="cancelJoinBtn" style="flex: 1; background: #dc3545; color: white; padding: 12px; border-radius: 12px;">CANCELAR</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Three.js e dependências -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.128.0/build/three.module.js"
+            }
+        }
+    </script>
+    
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -125,13 +264,9 @@
     <!-- Scripts do Jogo -->
     <script src="js/firebase-config.js"></script>
     <script src="js/velocidades.js"></script>
-    <script src="js/utils.js"></script>
-    <script src="js/player.js"></script>
-    <script src="js/obstacles.js"></script>
-    <script src="js/render.js"></script>
-    <script src="js/ui.js"></script>
+    <script src="js/player3d.js"></script>
+    <script src="js/game3d.js"></script>
     <script src="js/room.js"></script>
-    <script src="js/gameLoop.js"></script>
     <script src="js/main.js"></script>
 </body>
 </html>
