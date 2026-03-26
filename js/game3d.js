@@ -1,22 +1,23 @@
-// ==================== JOGO 3D COM THREE.JS ====================
-
-import * as THREE from 'three';
+// ==================== JOGO 3D COM THREE.JS (VERSÃO SEM MÓDULOS) ====================
 
 let scene, camera, renderer;
-let track, car, obstacles3d = [];
-let otherCars = {};
-let gameActive = false;
+let trackGroup, carMesh;
+let obstacles3d = [];
+let gameActive3D = false;
 
-// Configurações da câmera
-const CAMERA_OFFSET = new THREE.Vector3(-5, 3, 8);
+// Constantes 3D
+const ROAD_WIDTH = 5;
+const ROAD_LENGTH = 200;
+const CAM_OFFSET = { x: 0, y: 3, z: 8 };
 
 function init3D() {
     const container = document.getElementById('canvas-container');
+    if (!container) return;
     
     // Cena
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x87CEEB);
-    scene.fog = new THREE.Fog(0x87CEEB, 50, 100);
+    scene.fog = new THREE.Fog(0x87CEEB, 40, 80);
     
     // Câmera
     camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -26,218 +27,150 @@ function init3D() {
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     container.appendChild(renderer.domElement);
     
     // Iluminação
-    setupLighting();
-    
-    // Pista
-    createTrack();
-    
-    // Obstáculos iniciais
-    createInitialObstacles();
-    
-    // Animação
-    animate();
-    
-    // Redimensionamento
-    window.addEventListener('resize', onWindowResize);
-}
-
-function setupLighting() {
-    // Luz ambiente
     const ambientLight = new THREE.AmbientLight(0x404060);
     scene.add(ambientLight);
     
-    // Luz direcional (sol)
-    const directionalLight = new THREE.DirectionalLight(0xfff5e6, 1);
-    directionalLight.position.set(10, 20, 5);
-    directionalLight.castShadow = true;
-    directionalLight.receiveShadow = true;
-    directionalLight.shadow.mapSize.width = 1024;
-    directionalLight.shadow.mapSize.height = 1024;
-    scene.add(directionalLight);
+    const dirLight = new THREE.DirectionalLight(0xfff5e6, 1);
+    dirLight.position.set(10, 20, 5);
+    dirLight.castShadow = true;
+    dirLight.receiveShadow = true;
+    scene.add(dirLight);
     
-    // Luz de preenchimento
     const fillLight = new THREE.PointLight(0x4466cc, 0.3);
     fillLight.position.set(-5, 5, 5);
     scene.add(fillLight);
     
-    // Luz de fundo
-    const backLight = new THREE.PointLight(0xffaa66, 0.2);
-    backLight.position.set(0, 5, -10);
-    scene.add(backLight);
-    
-    // Grama/Chão
-    const groundPlane = new THREE.Mesh(
-        new THREE.PlaneGeometry(100, 200),
-        new THREE.MeshStandardMaterial({ color: 0x3a6b3a, roughness: 0.8, metalness: 0.1 })
-    );
+    // Chão/Grama
+    const groundMat = new THREE.MeshStandardMaterial({ color: 0x3a6b3a, roughness: 0.8 });
+    const groundPlane = new THREE.Mesh(new THREE.PlaneGeometry(100, 300), groundMat);
     groundPlane.rotation.x = -Math.PI / 2;
     groundPlane.position.y = -0.5;
     groundPlane.receiveShadow = true;
     scene.add(groundPlane);
+    
+    // Pista
+    createTrack3D();
+    
+    // Obstáculos
+    createObstacles3D();
+    
+    // Árvores
+    createTrees3D();
+    
+    // Animação
+    animate3D();
+    
+    window.addEventListener('resize', onWindowResize3D);
 }
 
-function createTrack() {
-    track = new THREE.Group();
+function createTrack3D() {
+    trackGroup = new THREE.Group();
     
-    // Pista principal
-    const trackWidth = 6;
-    const trackLength = 150;
-    const trackCurve = 2;
+    const asphaltMat = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.4 });
+    const lineMat = new THREE.MeshStandardMaterial({ color: 0xffdd88 });
+    const edgeMat = new THREE.MeshStandardMaterial({ color: 0xaa8866 });
     
-    // Criar segmentos da pista
-    for (let z = -trackLength/2; z < trackLength/2; z += 2) {
-        const offsetX = Math.sin(z * 0.1) * trackCurve;
+    for (let z = -ROAD_LENGTH/2; z < ROAD_LENGTH/2; z += 1.5) {
+        const offsetX = Math.sin(z * 0.08) * 1.5;
         
         // Asfalto
-        const road = new THREE.Mesh(
-            new THREE.BoxGeometry(trackWidth, 0.2, 2),
-            new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.4, metalness: 0.1 })
-        );
+        const road = new THREE.Mesh(new THREE.BoxGeometry(ROAD_WIDTH, 0.1, 1.2), asphaltMat);
         road.position.set(offsetX, -0.3, z);
         road.castShadow = true;
         road.receiveShadow = true;
-        track.add(road);
+        trackGroup.add(road);
         
-        // Faixa central
-        const line = new THREE.Mesh(
-            new THREE.BoxGeometry(0.3, 0.25, 1.5),
-            new THREE.MeshStandardMaterial({ color: 0xffdd88, emissive: 0x442200 })
-        );
-        line.position.set(offsetX, -0.15, z);
-        track.add(line);
+        // Linha central
+        const line = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.15, 1), lineMat);
+        line.position.set(offsetX, -0.2, z);
+        trackGroup.add(line);
         
         // Bordas
-        const leftEdge = new THREE.Mesh(
-            new THREE.BoxGeometry(0.3, 0.2, 2),
-            new THREE.MeshStandardMaterial({ color: 0xaa8866 })
-        );
-        leftEdge.position.set(offsetX - trackWidth/2 - 0.15, -0.25, z);
-        track.add(leftEdge);
+        const leftEdge = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.1, 1.2), edgeMat);
+        leftEdge.position.set(offsetX - ROAD_WIDTH/2 - 0.15, -0.25, z);
+        trackGroup.add(leftEdge);
         
-        const rightEdge = new THREE.Mesh(
-            new THREE.BoxGeometry(0.3, 0.2, 2),
-            new THREE.MeshStandardMaterial({ color: 0xaa8866 })
-        );
-        rightEdge.position.set(offsetX + trackWidth/2 + 0.15, -0.25, z);
-        track.add(rightEdge);
+        const rightEdge = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.1, 1.2), edgeMat);
+        rightEdge.position.set(offsetX + ROAD_WIDTH/2 + 0.15, -0.25, z);
+        trackGroup.add(rightEdge);
     }
     
-    scene.add(track);
+    scene.add(trackGroup);
+}
+
+function createTrees3D() {
+    const trunkMat = new THREE.MeshStandardMaterial({ color: 0x8B5A2B });
+    const foliageMat = new THREE.MeshStandardMaterial({ color: 0x4CAF50 });
     
-    // Árvores ao longo da pista
-    for (let z = -70; z < 70; z += 8) {
-        const offsetX = Math.sin(z * 0.1) * 3;
+    for (let z = -70; z < 70; z += 6) {
+        const offsetX = Math.sin(z * 0.08) * 2;
         
-        const treePositions = [
-            { x: offsetX - 5, z: z, size: 1.2 },
-            { x: offsetX + 5, z: z, size: 1.5 }
-        ];
+        const leftPos = { x: offsetX - 4, z: z };
+        const rightPos = { x: offsetX + 4, z: z };
         
-        treePositions.forEach(pos => {
-            const treeGroup = new THREE.Group();
-            
-            // Tronco
-            const trunk = new THREE.Mesh(
-                new THREE.CylinderGeometry(0.5, 0.6, 1.2, 6),
-                new THREE.MeshStandardMaterial({ color: 0x8B5A2B, roughness: 0.7 })
-            );
-            trunk.position.y = 0.6;
+        [leftPos, rightPos].forEach(pos => {
+            const tree = new THREE.Group();
+            const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.5, 1, 6), trunkMat);
+            trunk.position.y = 0.5;
             trunk.castShadow = true;
-            treeGroup.add(trunk);
+            tree.add(trunk);
             
-            // Copa
-            const foliage1 = new THREE.Mesh(
-                new THREE.ConeGeometry(0.8, 1, 8),
-                new THREE.MeshStandardMaterial({ color: 0x4CAF50, roughness: 0.5 })
-            );
-            foliage1.position.y = 1.2;
-            foliage1.castShadow = true;
-            treeGroup.add(foliage1);
+            const foliage = new THREE.Mesh(new THREE.ConeGeometry(0.7, 0.9, 8), foliageMat);
+            foliage.position.y = 1.1;
+            foliage.castShadow = true;
+            tree.add(foliage);
             
-            const foliage2 = new THREE.Mesh(
-                new THREE.ConeGeometry(0.6, 0.8, 8),
-                new THREE.MeshStandardMaterial({ color: 0x5CB85C, roughness: 0.5 })
-            );
-            foliage2.position.y = 1.8;
-            foliage2.castShadow = true;
-            treeGroup.add(foliage2);
-            
-            treeGroup.position.set(pos.x, -0.3, pos.z);
-            scene.add(treeGroup);
+            tree.position.set(pos.x, -0.3, pos.z);
+            scene.add(tree);
         });
     }
 }
 
-function createInitialObstacles() {
-    // Obstáculos serão gerados dinamicamente
-    for (let i = 0; i < 20; i++) {
-        const obs = createObstacle3D('Pedra');
-        obs.userData = { type: 'Pedra', damage: 15, active: false };
-        scene.add(obs);
-        obstacles3d.push(obs);
-    }
-}
-
-function createObstacle3D(type) {
-    let geometry, material, mesh;
+function createObstacles3D() {
+    const types = [
+        { name: 'Pedra', geo: new THREE.DodecahedronGeometry(0.35), color: 0x888888, y: -0.2 },
+        { name: 'Tronco', geo: new THREE.CylinderGeometry(0.35, 0.4, 0.6, 8), color: 0x8B4513, y: -0.1 },
+        { name: 'Galho', geo: new THREE.BoxGeometry(0.7, 0.2, 0.3), color: 0x654321, y: -0.25 }
+    ];
     
-    switch(type) {
-        case 'Pedra':
-            geometry = new THREE.DodecahedronGeometry(0.4);
-            material = new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.8, metalness: 0.1 });
-            mesh = new THREE.Mesh(geometry, material);
-            break;
-        case 'Buraco':
-            geometry = new THREE.CylinderGeometry(0.5, 0.6, 0.2, 8);
-            material = new THREE.MeshStandardMaterial({ color: 0x4a2c1a, roughness: 0.9 });
-            mesh = new THREE.Mesh(geometry, material);
-            mesh.rotation.x = Math.PI / 2;
-            break;
-        case 'Tronco':
-            geometry = new THREE.CylinderGeometry(0.4, 0.45, 0.8, 8);
-            material = new THREE.MeshStandardMaterial({ color: 0x8B4513, roughness: 0.7 });
-            mesh = new THREE.Mesh(geometry, material);
-            break;
-        default:
-            geometry = new THREE.BoxGeometry(0.6, 0.3, 0.6);
-            material = new THREE.MeshStandardMaterial({ color: 0xCD853F });
-            mesh = new THREE.Mesh(geometry, material);
+    for (let i = 0; i < 30; i++) {
+        const type = types[Math.floor(Math.random() * types.length)];
+        const mat = new THREE.MeshStandardMaterial({ color: type.color, roughness: 0.7 });
+        const mesh = new THREE.Mesh(type.geo, mat);
+        mesh.position.y = type.y;
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        mesh.userData = { active: false, type: type.name, damage: type.name === 'Pedra' ? 15 : 10 };
+        mesh.visible = false;
+        scene.add(mesh);
+        obstacles3d.push(mesh);
     }
-    
-    mesh.castShadow = true;
-    mesh.receiveShadow = true;
-    return mesh;
 }
 
 function createCar3D(color = 0xff6b35) {
     const carGroup = new THREE.Group();
     
     // Corpo
-    const bodyGeo = new THREE.BoxGeometry(0.8, 0.4, 1.2);
-    const bodyMat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.3, metalness: 0.7 });
-    const body = new THREE.Mesh(bodyGeo, bodyMat);
+    const body = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.35, 1.2), new THREE.MeshStandardMaterial({ color: color, roughness: 0.3, metalness: 0.6 }));
     body.position.y = 0.2;
     body.castShadow = true;
     carGroup.add(body);
     
-    // Teto/Banco
-    const roofGeo = new THREE.BoxGeometry(0.6, 0.3, 0.8);
-    const roofMat = new THREE.MeshStandardMaterial({ color: 0x8B4513 });
-    const roof = new THREE.Mesh(roofGeo, roofMat);
+    // Teto
+    const roof = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.25, 0.8), new THREE.MeshStandardMaterial({ color: 0x8B4513 }));
     roof.position.y = 0.45;
     roof.castShadow = true;
     carGroup.add(roof);
     
     // Rodas
-    const wheelGeo = new THREE.CylinderGeometry(0.2, 0.2, 0.1, 16);
+    const wheelGeo = new THREE.CylinderGeometry(0.18, 0.18, 0.1, 16);
     const wheelMat = new THREE.MeshStandardMaterial({ color: 0x222222, metalness: 0.8 });
+    const wheelPos = [[-0.45, 0.1, -0.55], [0.45, 0.1, -0.55], [-0.45, 0.1, 0.55], [0.45, 0.1, 0.55]];
     
-    const positions = [[-0.5, 0.1, -0.5], [0.5, 0.1, -0.5], [-0.5, 0.1, 0.5], [0.5, 0.1, 0.5]];
-    positions.forEach(pos => {
+    wheelPos.forEach(pos => {
         const wheel = new THREE.Mesh(wheelGeo, wheelMat);
         wheel.rotation.z = Math.PI / 2;
         wheel.position.set(pos[0], pos[1], pos[2]);
@@ -248,20 +181,105 @@ function createCar3D(color = 0xff6b35) {
     return carGroup;
 }
 
-function updateCamera() {
-    if (!car) return;
+function startGame3D() {
+    if (gameActive3D) return;
     
-    // Câmera segue o carro
-    const targetPosition = car.position.clone().add(CAMERA_OFFSET);
-    camera.position.lerp(targetPosition, 0.05);
-    camera.lookAt(car.position);
+    init3D();
+    
+    // Criar carro do jogador
+    carMesh = createCar3D(0xff6b35);
+    carMesh.position.set(0, -0.1, 0);
+    scene.add(carMesh);
+    
+    gameActive3D = true;
+    
+    // Mostrar HUD
+    document.getElementById('gameHud').style.display = 'block';
+    document.getElementById('raceControls').style.display = 'flex';
 }
 
-function updateObstacles3D() {
-    // Atualizar posição dos obstáculos
+function stopGame3D() {
+    gameActive3D = false;
+    
+    // Limpar cena
+    if (carMesh) scene.remove(carMesh);
+    if (trackGroup) scene.remove(trackGroup);
+    
+    // Esconder HUD
+    document.getElementById('gameHud').style.display = 'none';
+    document.getElementById('raceControls').style.display = 'none';
+    
+    // Recriar cena
+    scene = null;
+    renderer = null;
+}
+
+function updateGame3DVisuals() {
+    if (!gameActive3D || !carMesh) return;
+    
+    // Atualizar posição do carro
+    const carZ = -playerCar.distancia * 0.08;
+    const carX = (playerCar.x - 400) / 60;
+    carMesh.position.x = carX;
+    carMesh.position.z = carZ;
+    
+    // Inclinação nas curvas
+    carMesh.rotation.z = -carX * 0.2;
+    
+    // Atualizar câmera
+    const targetCamPos = {
+        x: carX * 0.5,
+        y: 4 + Math.abs(carX) * 0.5,
+        z: carZ + 8
+    };
+    camera.position.x += (targetCamPos.x - camera.position.x) * 0.05;
+    camera.position.y += (targetCamPos.y - camera.position.y) * 0.05;
+    camera.position.z += (targetCamPos.z - camera.position.z) * 0.05;
+    camera.lookAt(carMesh.position);
+    
+    // Atualizar obstáculos
+    updateObstacles3DVisuals();
+    
+    // Atualizar outros jogadores
+    updateOtherPlayers3DVisuals();
+    
+    // Atualizar UI
+    updateRaceUI3D();
+}
+
+function updateObstacles3DVisuals() {
+    // Gerar obstáculos
+    if (Math.random() < 0.02 && gameActive3D) {
+        const inactiveObs = obstacles3d.find(obs => !obs.userData.active);
+        if (inactiveObs) {
+            const trackX = Math.sin(Date.now() * 0.003) * 1.5;
+            inactiveObs.position.x = trackX + (Math.random() - 0.5) * 2.5;
+            inactiveObs.position.z = 25;
+            inactiveObs.userData.active = true;
+            inactiveObs.visible = true;
+        }
+    }
+    
+    // Mover obstáculos
     obstacles3d.forEach(obs => {
         if (obs.userData.active) {
-            obs.position.z -= playerCar.velocidade * 0.02;
+            obs.position.z -= playerCar.velocidade * 0.025;
+            
+            // Verificar colisão
+            if (!invincible && obs.userData.active && Math.abs(obs.position.x - carMesh.position.x) < 0.6 && 
+                Math.abs(obs.position.z - carMesh.position.z) < 1) {
+                playerCar.durability -= obs.userData.damage;
+                invincible = true;
+                invincibleTimer = 0.8;
+                obs.userData.active = false;
+                obs.visible = false;
+                
+                if (playerCar.durability <= 0) {
+                    gameOver = true;
+                    raceActive = false;
+                    showRaceResult();
+                }
+            }
             
             if (obs.position.z < -20) {
                 obs.userData.active = false;
@@ -269,29 +287,16 @@ function updateObstacles3D() {
             }
         }
     });
-    
-    // Gerar novos obstáculos
-    if (Math.random() < 0.02 && gameActive) {
-        const types = ['Pedra', 'Buraco', 'Tronco'];
-        const type = types[Math.floor(Math.random() * types.length)];
-        
-        const inactiveObs = obstacles3d.find(obs => !obs.userData.active);
-        if (inactiveObs) {
-            const trackPos = Math.sin(Date.now() * 0.003) * 2;
-            inactiveObs.position.set(trackPos + (Math.random() - 0.5) * 3, -0.2, 30);
-            inactiveObs.userData = { type: type, damage: type === 'Buraco' ? 25 : (type === 'Pedra' ? 15 : 12), active: true };
-            inactiveObs.visible = true;
-            
-            // Atualizar aparência
-            const newMesh = createObstacle3D(type);
-            inactiveObs.geometry.dispose();
-            inactiveObs.geometry = newMesh.geometry;
-            inactiveObs.material = newMesh.material;
-        }
-    }
 }
 
-function updateOtherPlayers3D() {
+function updateOtherPlayers3DVisuals() {
+    // Limpar carros antigos
+    for (let [name, car] of Object.entries(otherCars || {})) {
+        if (!otherPlayers[name] && car.parent) scene.remove(car);
+    }
+    
+    if (!otherCars) otherCars = {};
+    
     for (let [name, other] of Object.entries(otherPlayers)) {
         if (!otherCars[name]) {
             const otherColor = Math.abs(hashCode(name) % 360);
@@ -300,13 +305,14 @@ function updateOtherPlayers3D() {
         }
         
         if (otherCars[name]) {
-            const zPos = (other.distancia - playerCar.distancia) * 0.5;
-            otherCars[name].position.set(other.x / 50 - 4, -0.1, Math.min(15, Math.max(-15, zPos)));
+            const zPos = (other.distancia - playerCar.distancia) * 0.08;
+            const xPos = (other.x - 400) / 60;
+            otherCars[name].position.set(xPos, -0.1, Math.min(12, Math.max(-12, zPos)));
         }
     }
 }
 
-function updateRaceUI() {
+function updateRaceUI3D() {
     document.getElementById('distanceDisplay').textContent = Math.floor(playerCar.distancia);
     document.getElementById('speedDisplay').textContent = Math.floor(playerCar.velocidade);
     document.getElementById('durabilityDisplay').textContent = Math.max(0, Math.floor(playerCar.durability));
@@ -318,41 +324,18 @@ function updateRaceUI() {
     document.getElementById('positionDisplay').textContent = position;
 }
 
-function animate() {
-    if (!gameActive) {
-        requestAnimationFrame(animate);
-        if (renderer) renderer.render(scene, camera);
-        return;
+function animate3D() {
+    requestAnimationFrame(animate3D);
+    
+    if (gameActive3D && renderer && scene && camera) {
+        updateGame3DVisuals();
+        renderer.render(scene, camera);
+    } else if (renderer && scene && camera) {
+        renderer.render(scene, camera);
     }
-    
-    // Atualizar posição do carro
-    if (car) {
-        const speedEffect = playerCar.velocidade / 380;
-        const turnSpeed = (playerCar.x - 400) / 50;
-        
-        car.position.x = (playerCar.x - 400) / 50;
-        car.position.z = -playerCar.distancia * 0.1;
-        
-        // Inclinação nas curvas
-        car.rotation.z = -turnSpeed * 0.3;
-        car.rotation.x = Math.sin(Date.now() * 0.01) * 0.05;
-        
-        // Efeito de velocidade (partículas)
-        if (playerCar.velocidade > 150) {
-            // Efeito visual de velocidade
-        }
-    }
-    
-    updateObstacles3D();
-    updateOtherPlayers3D();
-    updateCamera();
-    updateRaceUI();
-    
-    renderer.render(scene, camera);
-    requestAnimationFrame(animate);
 }
 
-function onWindowResize() {
+function onWindowResize3D() {
     if (camera && renderer) {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
@@ -360,25 +343,12 @@ function onWindowResize() {
     }
 }
 
-function startGame3D() {
-    init3D();
-    car = createCar3D(0xff6b35);
-    car.position.set(0, -0.1, 0);
-    scene.add(car);
-    gameActive = true;
-    
-    // Mostrar HUD
-    document.getElementById('gameHud').style.display = 'block';
-    document.getElementById('raceControls').style.display = 'flex';
+// Função auxiliar
+function hashCode(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        hash = ((hash << 5) - hash) + str.charCodeAt(i);
+        hash |= 0;
+    }
+    return Math.abs(hash);
 }
-
-function stopGame3D() {
-    gameActive = false;
-    document.getElementById('gameHud').style.display = 'none';
-    document.getElementById('raceControls').style.display = 'none';
-}
-
-// Exportar funções
-window.startGame3D = startGame3D;
-window.stopGame3D = stopGame3D;
-window.init3D = init3D;
