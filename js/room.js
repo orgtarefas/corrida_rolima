@@ -1,9 +1,12 @@
+// ==================== SISTEMA DE SALAS MULTIPLAYER ====================
+
 let currentRoomId = null;
 let currentRoom = null;
 let roomListener = null;
 let playersListener = null;
 let positionSyncInterval = null;
 let otherPlayers = {};
+let otherCars = {};
 
 async function createRoomWithConfig(maxPlayers) {
     if (!currentPlayer) return;
@@ -81,6 +84,7 @@ function listenForPlayers(roomCode) {
         const players = room.players || {};
         const playerCount = Object.keys(players).length;
         
+        // Atualizar UI
         const currentSpan = document.getElementById('currentPlayersCount');
         const maxSpan = document.getElementById('maxPlayersCount');
         const playersList = document.getElementById('playersList');
@@ -95,11 +99,15 @@ function listenForPlayers(roomCode) {
             }
         }
         
+        // Atualizar outros jogadores
         otherPlayers = {};
         for (let [name, data] of Object.entries(players)) {
-            if (name !== currentPlayer.name) otherPlayers[name] = { ...data, y: data.y || TOP_Y };
+            if (name !== currentPlayer.name) {
+                otherPlayers[name] = { ...data, y: data.y || TOP_Y };
+            }
         }
         
+        // Iniciar corrida quando todos estiverem prontos
         if (playerCount === maxPlayers && !room.raceStarted) {
             await database.ref(`rooms/${roomCode}`).update({
                 raceStarted: true, status: 'racing', startTime: Date.now()
@@ -113,10 +121,10 @@ async function startRaceOnline(roomCode) {
     if (!currentPlayer) return;
     
     if (roomListener) database.ref(`rooms/${roomCode}`).off('value', roomListener);
-    document.getElementById('waitingScreen')?.classList.remove('active');
+    const waitingScreen = document.getElementById('waitingScreen');
+    if (waitingScreen) waitingScreen.classList.remove('active');
     
     gameOver = false;
-    raceResultShown = false;
     obstacles = [];
     raceStarted = true;
     raceActive = true;
@@ -125,6 +133,11 @@ async function startRaceOnline(roomCode) {
     invincible = false;
     invincibleTimer = 0;
     
+    // Iniciar jogo 3D
+    if (typeof startGame3D === 'function') startGame3D();
+    if (typeof startRacePhysics === 'function') startRacePhysics();
+    
+    // Buscar todos os jogadores da sala
     const room = (await database.ref(`rooms/${roomCode}`).once('value')).val();
     const allPlayers = room?.players || {};
     
@@ -150,15 +163,14 @@ async function startRaceOnline(roomCode) {
         }
     });
     
-    initCanvas();
-    showScreen('raceScreen');
-    startObstacleSpawner();
-    startGameLoop();
     startPositionSync(roomCode);
+    
+    console.log('🏁 Corrida 3D iniciada!');
 }
 
 function startPositionSync(roomCode) {
     if (positionSyncInterval) clearInterval(positionSyncInterval);
+    
     positionSyncInterval = setInterval(async () => {
         if (raceActive && !gameOver && roomCode && currentPlayer) {
             try {
@@ -170,6 +182,13 @@ function startPositionSync(roomCode) {
             } catch (e) { console.warn(e); }
         }
     }, 50);
+}
+
+function showWaitingRoom(roomCode) {
+    let waitingScreen = document.getElementById('waitingScreen');
+    if (!waitingScreen) return;
+    document.getElementById('roomCodeDisplay').textContent = roomCode;
+    showScreen('waitingScreen');
 }
 
 async function cancelRoom() {
@@ -188,11 +207,38 @@ async function leaveRoom() {
     }
 }
 
+function showRaceResult() {
+    const resultDiv = document.getElementById('raceResult');
+    const title = document.getElementById('resultTitle');
+    const reward = document.getElementById('resultReward');
+    if (!resultDiv) return;
+    
+    let pointsEarned = Math.floor(playerCar.distancia / 25) + 10;
+    pointsEarned = Math.min(100, pointsEarned);
+    
+    if (playerCar.durability <= 0) {
+        title.textContent = '💔 CARRINHO QUEBROU!';
+        title.style.color = '#F44336';
+        pointsEarned = Math.floor(pointsEarned * 0.5);
+    } else {
+        title.textContent = '🏁 CORRIDA FINALIZADA!';
+        title.style.color = '#4CAF50';
+    }
+    reward.textContent = `Distância: ${Math.floor(playerCar.distancia)}m | +${pointsEarned}⭐ pontos!`;
+    
+    if (currentPlayer) {
+        currentPlayer.points = (currentPlayer.points || 0) + pointsEarned;
+        database.ref(`players/${currentPlayer.name}`).update({ points: currentPlayer.points });
+        updateGarageUI();
+    }
+    resultDiv.classList.remove('active');
+    resultDiv.classList.add('active');
+    showScreen('raceResult');
+}
+
 function exitRace() {
     raceActive = false;
     raceStarted = false;
-    if (obstacleInterval) clearInterval(obstacleInterval);
-    if (animationId) cancelAnimationFrame(animationId);
     if (positionSyncInterval) clearInterval(positionSyncInterval);
     if (playersListener && currentRoomId) {
         database.ref(`races/${currentRoomId}/players`).off('value', playersListener);
@@ -203,11 +249,12 @@ function exitRace() {
     }
     currentRoomId = null;
     keysPressed = {};
+    
+    if (typeof stopGame3D === 'function') stopGame3D();
     showScreen('garageScreen');
     updateGarageUI();
 }
 
 function backToGarage() {
-    document.getElementById('raceResult')?.classList.add('hidden');
     exitRace();
 }
