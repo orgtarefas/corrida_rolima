@@ -1,7 +1,4 @@
-// ==================== CONFIGURAÇÃO DO FIREBASE ====================
-// Projeto: carrinho-rolima
-// ID do projeto: frota-caminhao-producao
-
+// Configuração do Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyBfuqxgjW2KmK9t66-v_Z0SqRuXNB1sYo0",
     authDomain: "frota-caminhao-producao.firebaseapp.com",
@@ -17,15 +14,8 @@ firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
 // Verificar conexão
-const connectedRef = database.ref('.info/connected');
-connectedRef.on('value', (snap) => {
-    if (snap.val() === true) {
-        console.log('✅ Firebase conectado!');
-        console.log('📁 Projeto: carrinho-rolima');
-        console.log('🆔 Project ID: frota-caminhao-producao');
-    } else {
-        console.log('❌ Firebase desconectado');
-    }
+database.ref('.info/connected').on('value', (snap) => {
+    console.log(snap.val() ? '✅ Firebase conectado' : '❌ Firebase desconectado');
 });
 
 // Exportar para uso global
