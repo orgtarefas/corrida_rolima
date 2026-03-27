@@ -70,22 +70,26 @@
                     <button class="upgrade-btn" data-upgrade="durability">MELHORAR (45⭐)</button>
                 </div>
             </div>
-            <button id="createRoomBtn" class="btn-primary" style="width: 100%;">🎮 CRIAR SALA</button>
+            <div class="flex-btns" style="gap: 12px;">
+                <button id="createRoomBtn" style="flex: 1;">🎮 CRIAR SALA</button>
+                <button id="showJoinModalBtn" style="flex: 1; background: #4CAF50;">🔗 ENTRAR EM SALA</button>
+            </div>
         </div>
     </div>
     
     <div id="waitingScreen" class="screen">
         <div class="card">
-            <h2>🎮 AGUARDANDO</h2>
+            <h2>🎮 AGUARDANDO JOGADORES</h2>
             <div style="background:#2a2a35; padding:15px; border-radius:20px; margin:15px 0;">
-                <span>CÓDIGO:</span>
+                <span>CÓDIGO DA SALA:</span>
                 <h1 id="roomCodeDisplay" style="font-size: 3em; letter-spacing: 5px;"></h1>
-                <button id="copyCodeBtn" style="background:#4CAF50;">📋 COPIAR</button>
+                <button id="copyCodeBtn" style="background:#4CAF50; margin-top: 10px;">📋 COPIAR CÓDIGO</button>
             </div>
             <div class="players-list">
                 <h3>JOGADORES (<span id="currentPlayersCount">0</span>/<span id="maxPlayersCount">0</span>)</h3>
                 <ul id="playersList"></ul>
             </div>
+            <p style="margin: 15px 0; color: #ffaa66;">⏳ Aguardando todos os jogadores entrarem...</p>
             <button id="cancelRoomBtn" class="btn-exit">CANCELAR</button>
         </div>
     </div>
@@ -94,13 +98,14 @@
         <div class="card">
             <h2 id="resultTitle"></h2>
             <p id="resultReward" style="margin: 20px 0;"></p>
-            <button id="backToGarageBtn">VOLTAR</button>
+            <button id="backToGarageBtn">VOLTAR À GARAGEM</button>
         </div>
     </div>
     
+    <!-- Modal para criar sala -->
     <div id="configModal" class="modal">
         <div class="modal-content">
-            <h3>⚙️ CONFIGURAR CORRIDA</h3>
+            <h3>⚙️ CRIAR NOVA CORRIDA</h3>
             <div class="distance-selector">
                 <button id="distMinus">-</button>
                 <span id="distanceValue">1000</span>
@@ -109,13 +114,26 @@
             <p>Distância (metros)</p>
             <div class="players-selector">
                 <button id="playersMinus">-</button>
-                <span id="playersCount">1</span>
+                <span id="playersCount">2</span>
                 <button id="playersPlus">+</button>
             </div>
-            <p>Jogadores (1 = Solo, 2-6 = Multiplayer)</p>
+            <p>Número de jogadores (2-6)</p>
             <div class="flex-btns">
-                <button id="confirmConfigBtn">INICIAR CORRIDA</button>
+                <button id="confirmConfigBtn">CRIAR SALA</button>
                 <button id="cancelConfigBtn" class="btn-exit">CANCELAR</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal para entrar em sala -->
+    <div id="joinRoomModal" class="modal">
+        <div class="modal-content">
+            <h3>🔗 ENTRAR EM UMA SALA</h3>
+            <p>Digite o código da sala:</p>
+            <input type="text" id="joinRoomCode" placeholder="EX: ABCD" maxlength="4" style="text-transform: uppercase; font-size: 24px; text-align: center;">
+            <div class="flex-btns" style="margin-top: 20px;">
+                <button id="confirmJoinRoomBtn">ENTRAR NA SALA</button>
+                <button id="cancelJoinRoomBtn" class="btn-exit">CANCELAR</button>
             </div>
         </div>
     </div>
