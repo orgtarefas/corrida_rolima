@@ -2,7 +2,6 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    user-select: none;
 }
 
 body {
@@ -10,7 +9,7 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-#canvas-container {
+#application-canvas {
     position: fixed;
     top: 0;
     left: 0;
@@ -19,7 +18,16 @@ body {
     z-index: 1;
 }
 
-/* Telas */
+.ui-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    pointer-events: none;
+}
+
 .screen {
     position: fixed;
     top: 0;
@@ -43,7 +51,7 @@ body {
     background: rgba(30, 30, 40, 0.95);
     border-radius: 32px;
     padding: 35px;
-    max-width: 480px;
+    max-width: 600px;
     width: 90%;
     text-align: center;
     color: white;
@@ -63,14 +71,9 @@ body {
     }
 }
 
-h1 {
+h1, h2, h3 {
     color: #ff6b35;
-    font-size: 2.2em;
-    margin-bottom: 10px;
-}
-
-h2 {
-    color: #ff6b35;
+    margin-bottom: 15px;
 }
 
 input {
@@ -104,42 +107,94 @@ button:hover {
     background: #ff8555;
 }
 
-.btn-secondary {
-    background: #4CAF50;
-}
-
 .btn-exit {
     background: #dc3545;
 }
 
-/* HUD do jogo */
-.game-hud {
+.btn-primary {
+    background: #ff6b35;
+}
+
+/* Seletor de Carros */
+.car-selector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    margin: 20px 0;
+}
+
+.car-nav {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    font-size: 24px;
+    background: #ff6b35;
+}
+
+.car-preview {
+    background: #1e1e2a;
+    border-radius: 20px;
+    padding: 20px;
+    min-width: 250px;
+    text-align: center;
+}
+
+.car-name {
+    font-size: 1.4em;
+    font-weight: bold;
+    color: #ffaa66;
+    margin-bottom: 10px;
+}
+
+.car-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    font-size: 0.9em;
+    color: #aaa;
+}
+
+/* Selecionador de Distância */
+.distance-selector {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    margin: 15px 0;
+}
+
+.distance-selector span {
+    font-size: 28px;
+    font-weight: bold;
+    min-width: 100px;
+    background: #2a2a35;
+    padding: 10px;
+    border-radius: 20px;
+}
+
+/* HUD da Corrida */
+.race-hud {
     position: fixed;
     top: 20px;
     left: 20px;
     background: rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(8px);
-    border-radius: 20px;
+    border-radius: 16px;
     padding: 12px 20px;
     color: white;
     font-family: monospace;
     z-index: 20;
     pointer-events: none;
     border-left: 4px solid #ff6b35;
+}
+
+.hud-item {
+    margin: 5px 0;
+    font-size: 14px;
     font-weight: bold;
 }
 
-.game-hud p {
-    margin: 4px 0;
-    font-size: 14px;
-}
-
-.speed-value {
-    font-size: 28px;
-    color: #ffaa66;
-}
-
-/* Controles da corrida */
 .race-controls {
     position: fixed;
     bottom: 20px;
@@ -152,7 +207,6 @@ button:hover {
     gap: 25px;
     z-index: 20;
     pointer-events: auto;
-    backdrop-filter: blur(4px);
 }
 
 .control-hint {
@@ -162,104 +216,10 @@ button:hover {
     gap: 20px;
 }
 
-/* Upgrades */
-.upgrade-item {
-    background: #2a2a35;
-    margin: 15px 0;
-    padding: 12px;
-    border-radius: 20px;
-    text-align: left;
-}
-
-.upgrade-bar {
-    background: #444;
-    height: 8px;
-    border-radius: 4px;
-    margin: 8px 0;
-}
-
-.upgrade-progress {
-    background: #ff6b35;
-    height: 100%;
-    border-radius: 4px;
-    width: 0%;
-}
-
-/* Lista de jogadores */
-.players-list ul {
-    list-style: none;
-    padding: 0;
-    max-height: 200px;
-    overflow-y: auto;
-}
-
-.players-list li {
-    background: #2a2a35;
-    margin: 5px 0;
-    padding: 10px;
-    border-radius: 12px;
-}
-
-/* Modal */
-.modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.9);
-    display: none;
-    justify-content: center;
-    align-items: center;
-    z-index: 200;
-}
-
-.modal.show {
-    display: flex;
-}
-
-.modal-content {
-    background: #1e1e2a;
-    padding: 30px;
-    border-radius: 32px;
-    width: 90%;
-    max-width: 400px;
-    text-align: center;
-    color: white;
-}
-
-.modal-content input {
-    background: #333;
-    text-align: center;
-    letter-spacing: 2px;
-    font-size: 1.5em;
-}
-
-/* Seletores */
-.distance-selector,
-.players-selector {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 20px;
-    margin: 15px 0;
-}
-
-.distance-selector span,
-.players-selector span {
-    font-size: 28px;
-    font-weight: bold;
-    min-width: 80px;
-}
-
-.flex-btns {
-    display: flex;
-    gap: 12px;
+.room-section {
     margin-top: 20px;
-}
-
-.flex-btns button {
-    flex: 1;
+    padding-top: 20px;
+    border-top: 1px solid #2a2a35;
 }
 
 /* Responsividade */
@@ -268,12 +228,23 @@ button:hover {
         padding: 25px;
     }
     
-    .control-hint {
-        font-size: 10px;
+    .car-selector {
         gap: 10px;
     }
     
-    .speed-value {
-        font-size: 22px;
+    .car-nav {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+    }
+    
+    .car-preview {
+        min-width: 180px;
+        padding: 15px;
+    }
+    
+    .control-hint {
+        font-size: 10px;
+        gap: 10px;
     }
 }
