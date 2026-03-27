@@ -3,146 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Carrinho de Rolimã 3D - Descida Radical</title>
+    <title>Carrinho de Rolimã - PlayCanvas 3D</title>
+    
+    <!-- Estilos -->
     <link rel="stylesheet" href="style.css">
     
-    <!-- Firebase SDK -->
+    <!-- PlayCanvas Engine -->
+    <script src="https://code.playcanvas.com/playcanvas-latest.js"></script>
+    
+    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     
-    <!-- Three.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Configuração Firebase -->
+    <script src="firebase-config.js"></script>
 </head>
 <body>
-    <div id="canvas-container"></div>
+    <!-- Canvas do PlayCanvas -->
+    <canvas id="application-canvas"></canvas>
     
-    <!-- HUD do jogo -->
-    <div class="game-hud" id="gameHud" style="display: none;">
-        <p>🏁 DISTÂNCIA: <span id="distanceDisplay">0</span>m / <span id="totalDistanceDisplay">1000</span>m</p>
-        <p>⚡ VELOCIDADE: <span id="speedDisplay" class="speed-value">0</span> km/h</p>
-        <p>💪 INTEGRIDADE: <span id="durabilityDisplay">100</span>%</p>
-        <p>📏 RESTANTE: <span id="remainingDisplay">0</span>m</p>
-    </div>
-    
-    <div class="race-controls" id="raceControls" style="display: none;">
-        <div class="control-hint">
-            <span>← A / → D = Desviar</span>
-            <span>↓ S = Freiar (sobe)</span>
-        </div>
-        <button id="exitRaceBtn" class="btn-exit">SAIR</button>
-    </div>
-    
-    <!-- Telas -->
-    <div id="loginScreen" class="screen active">
-        <div class="card">
-            <h1>🏎️ CARRINHO DE ROLIMÃ</h1>
-            <p style="margin-bottom: 20px;">Descida da Ladeira 3D</p>
-            <input type="text" id="playerName" placeholder="Seu nome" maxlength="20">
-            <button id="loginBtn">ENTRAR NA CORRIDA</button>
-        </div>
-    </div>
-    
-    <div id="garageScreen" class="screen">
-        <div class="card" style="max-width: 500px;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h2 id="playerNameDisplay"></h2>
-                <button id="logoutBtn" class="btn-exit" style="padding: 6px 16px;">Sair</button>
+    <!-- Interface UI -->
+    <div class="ui-overlay">
+        <!-- Tela de Login -->
+        <div id="loginScreen" class="screen active">
+            <div class="card">
+                <h1>🏎️ CARRINHO DE ROLIMÃ</h1>
+                <p>Descida da Ladeira 3D com PlayCanvas</p>
+                <input type="text" id="playerName" placeholder="Seu nome" maxlength="20">
+                <button id="loginBtn">ENTRAR</button>
             </div>
-            <div style="display: flex; gap: 20px; justify-content: center; margin: 15px 0;">
-                <span>🏆 Vitórias: <span id="winsCount">0</span></span>
-                <span>⭐ Pontos: <span id="pointsCount">0</span></span>
-            </div>
-            <div style="background: #1e1e2a; border-radius: 24px; padding: 15px; margin: 15px 0;">
-                <h3>🔧 UPGRADES</h3>
-                <div class="upgrade-item">
-                    <div>⚡ VELOCIDADE (Nv <span id="speedLevel">0</span>/10)</div>
-                    <div class="upgrade-bar"><div id="speedProgress" class="upgrade-progress"></div></div>
-                    <button class="upgrade-btn" data-upgrade="speed">MELHORAR (50⭐)</button>
+        </div>
+        
+        <!-- Tela da Garagem (Seleção de Carros) -->
+        <div id="garageScreen" class="screen">
+            <div class="card" style="max-width: 600px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 id="playerNameDisplay"></h2>
+                    <button id="logoutBtn" class="btn-exit">Sair</button>
                 </div>
-                <div class="upgrade-item">
-                    <div>🔄 CONTROLE (Nv <span id="controlLevel">0</span>/10)</div>
-                    <div class="upgrade-bar"><div id="controlProgress" class="upgrade-progress"></div></div>
-                    <button class="upgrade-btn" data-upgrade="control">MELHORAR (30⭐)</button>
+                
+                <!-- Seleção de Carros 3D -->
+                <div style="margin-bottom: 25px;">
+                    <h3>🚗 ESCOLHA SEU CARRINHO</h3>
+                    <div class="car-selector">
+                        <button id="prevCarBtn" class="car-nav">◀</button>
+                        <div id="carPreview" class="car-preview">
+                            <div id="carName" class="car-name">Carrinho Vermelho</div>
+                            <div id="carStats" class="car-stats">
+                                <span>⚡ Velocidade: ★★★★☆</span>
+                                <span>🔄 Controle: ★★★☆☆</span>
+                                <span>💪 Durabilidade: ★★★☆☆</span>
+                            </div>
+                        </div>
+                        <button id="nextCarBtn" class="car-nav">▶</button>
+                    </div>
                 </div>
-                <div class="upgrade-item">
-                    <div>💪 DURABILIDADE (Nv <span id="durabilityLevel">0</span>/10)</div>
-                    <div class="upgrade-bar"><div id="durabilityProgress" class="upgrade-progress"></div></div>
-                    <button class="upgrade-btn" data-upgrade="durability">MELHORAR (45⭐)</button>
+                
+                <!-- Criação de Sala -->
+                <div class="room-section">
+                    <h3>🎮 CRIAR CORRIDA SOLO</h3>
+                    <div class="distance-selector">
+                        <button id="distMinus">-</button>
+                        <span id="distanceValue">1000</span>
+                        <button id="distPlus">+</button>
+                    </div>
+                    <p>Distância da descida (metros)</p>
+                    <button id="createSoloRoomBtn" class="btn-primary" style="width: 100%; margin-top: 15px;">
+                        🏁 INICIAR DESCIDA SOLO
+                    </button>
                 </div>
             </div>
-            <div class="flex-btns" style="gap: 12px;">
-                <button id="createRoomBtn" style="flex: 1;">🎮 CRIAR SALA</button>
-                <button id="showJoinModalBtn" style="flex: 1; background: #4CAF50;">🔗 ENTRAR EM SALA</button>
+        </div>
+        
+        <!-- Tela da Corrida -->
+        <div id="raceScreen" class="screen">
+            <div class="race-hud">
+                <div class="hud-item">
+                    <span>🏁 DISTÂNCIA:</span>
+                    <span id="raceDistance">0</span>m / <span id="totalDistance">1000</span>m
+                </div>
+                <div class="hud-item">
+                    <span>⚡ VELOCIDADE:</span>
+                    <span id="raceSpeed">0</span> km/h
+                </div>
+                <div class="hud-item">
+                    <span>💪 INTEGRIDADE:</span>
+                    <span id="raceDurability">100</span>%
+                </div>
+            </div>
+            <div class="race-controls">
+                <div class="control-hint">
+                    <span>← A / → D = Desviar</span>
+                    <span>↓ S = Freiar</span>
+                </div>
+                <button id="exitRaceBtn" class="btn-exit">SAIR DA CORRIDA</button>
+            </div>
+        </div>
+        
+        <!-- Tela de Resultado -->
+        <div id="resultScreen" class="screen">
+            <div class="card">
+                <h2 id="resultTitle"></h2>
+                <p id="resultMessage"></p>
+                <button id="backToGarageBtn">VOLTAR À GARAGEM</button>
             </div>
         </div>
     </div>
     
-    <div id="waitingScreen" class="screen">
-        <div class="card">
-            <h2>🎮 AGUARDANDO JOGADORES</h2>
-            <div style="background:#2a2a35; padding:15px; border-radius:20px; margin:15px 0;">
-                <span>CÓDIGO DA SALA:</span>
-                <h1 id="roomCodeDisplay" style="font-size: 3em; letter-spacing: 5px;"></h1>
-                <button id="copyCodeBtn" style="background:#4CAF50; margin-top: 10px;">📋 COPIAR CÓDIGO</button>
-            </div>
-            <div class="players-list">
-                <h3>JOGADORES (<span id="currentPlayersCount">0</span>/<span id="maxPlayersCount">0</span>)</h3>
-                <ul id="playersList"></ul>
-            </div>
-            <p style="margin: 15px 0; color: #ffaa66;">⏳ Aguardando todos os jogadores entrarem...</p>
-            <button id="cancelRoomBtn" class="btn-exit">CANCELAR</button>
-        </div>
-    </div>
-    
-    <div id="raceResult" class="screen">
-        <div class="card">
-            <h2 id="resultTitle"></h2>
-            <p id="resultReward" style="margin: 20px 0;"></p>
-            <button id="backToGarageBtn">VOLTAR À GARAGEM</button>
-        </div>
-    </div>
-    
-    <!-- Modal para criar sala -->
-    <div id="configModal" class="modal">
-        <div class="modal-content">
-            <h3>⚙️ CRIAR NOVA CORRIDA</h3>
-            <div class="distance-selector">
-                <button id="distMinus">-</button>
-                <span id="distanceValue">1000</span>
-                <button id="distPlus">+</button>
-            </div>
-            <p>Distância (metros)</p>
-            <div class="players-selector">
-                <button id="playersMinus">-</button>
-                <span id="playersCount">2</span>
-                <button id="playersPlus">+</button>
-            </div>
-            <p>Número de jogadores (2-6)</p>
-            <div class="flex-btns">
-                <button id="confirmConfigBtn">CRIAR SALA</button>
-                <button id="cancelConfigBtn" class="btn-exit">CANCELAR</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Modal para entrar em sala -->
-    <div id="joinRoomModal" class="modal">
-        <div class="modal-content">
-            <h3>🔗 ENTRAR EM UMA SALA</h3>
-            <p>Digite o código da sala:</p>
-            <input type="text" id="joinRoomCode" placeholder="EX: ABCD" maxlength="4" style="text-transform: uppercase; font-size: 24px; text-align: center;">
-            <div class="flex-btns" style="margin-top: 20px;">
-                <button id="confirmJoinRoomBtn">ENTRAR NA SALA</button>
-                <button id="cancelJoinRoomBtn" class="btn-exit">CANCELAR</button>
-            </div>
-        </div>
-    </div>
-    
-    <script src="firebase-config.js"></script>
-    <script src="game-logic.js"></script>
-    <script src="game3d.js"></script>
-    <script src="player.js"></script>
-    <script src="multiplayer.js"></script>
-    <script src="main.js"></script>
+    <!-- Script do Jogo -->
+    <script src="game-script.js"></script>
 </body>
 </html>
