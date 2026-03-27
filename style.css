@@ -2,57 +2,57 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    user-select: none;
 }
 
 body {
-    font-family: 'Poppins', 'Segoe UI', 'Arial', sans-serif;
-    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
-    position: relative;
+    overflow: hidden;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-body::before {
-    content: '';
+#canvas-container {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: radial-gradient(circle at 20% 50%, rgba(255,107,53,0.1) 0%, transparent 50%);
-    pointer-events: none;
+    z-index: 1;
 }
 
-.container {
-    max-width: 1200px;
-    width: 100%;
-    background: rgba(255, 255, 255, 0.98);
-    border-radius: 32px;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255,255,255,0.2);
-    overflow: hidden;
-    backdrop-filter: blur(0px);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.container:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.6);
-}
-
+/* Telas */
 .screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(12px);
     display: none;
-    padding: 40px;
-    animation: slideUp 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    pointer-events: auto;
 }
 
 .screen.active {
-    display: block;
+    display: flex;
 }
 
-@keyframes slideUp {
+.card {
+    background: rgba(30, 30, 40, 0.95);
+    border-radius: 32px;
+    padding: 35px;
+    max-width: 480px;
+    width: 90%;
+    text-align: center;
+    color: white;
+    box-shadow: 0 25px 45px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 107, 53, 0.3);
+    animation: fadeUp 0.3s ease;
+}
+
+@keyframes fadeUp {
     from {
         opacity: 0;
         transform: translateY(30px);
@@ -63,737 +63,217 @@ body::before {
     }
 }
 
-/* ========== TELA DE LOGIN ========== */
-.logo-area {
-    text-align: center;
-    margin-bottom: 50px;
-    position: relative;
-}
-
-.logo-area h1 {
-    font-size: 3.2em;
-    background: linear-gradient(135deg, #ff6b35, #ff8c5a, #ffaa7a);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    margin-bottom: 15px;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-    letter-spacing: -0.5px;
-}
-
-.logo-area p {
-    color: #6c757d;
-    font-size: 1.2em;
-    font-weight: 500;
-}
-
-.logo-area::after {
-    content: '🏎️';
-    position: absolute;
-    bottom: -30px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 2em;
-    opacity: 0.3;
-}
-
-.login-form {
-    max-width: 400px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-.login-form input {
-    padding: 16px 20px;
-    font-size: 1.1em;
-    border: 2px solid #e9ecef;
-    border-radius: 16px;
-    outline: none;
-    transition: all 0.3s ease;
-    background: #f8f9fa;
-    font-weight: 500;
-}
-
-.login-form input:focus {
-    border-color: #ff6b35;
-    background: white;
-    box-shadow: 0 0 0 4px rgba(255, 107, 53, 0.1);
-}
-
-.btn-primary {
-    background: linear-gradient(135deg, #ff6b35, #ff8c5a);
-    color: white;
-    border: none;
-    padding: 16px;
-    font-size: 1.1em;
-    font-weight: 600;
-    border-radius: 16px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
-    letter-spacing: 0.5px;
-}
-
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4);
-}
-
-.btn-primary:active {
-    transform: translateY(0);
-}
-
-/* ========== GARAGEM ========== */
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 30px;
-    padding-bottom: 20px;
-    border-bottom: 2px solid #e9ecef;
-    flex-wrap: wrap;
-    gap: 15px;
-}
-
-.player-info h2 {
-    color: #212529;
-    font-size: 1.8em;
-    margin-bottom: 8px;
-    background: linear-gradient(135deg, #ff6b35, #ff8c5a);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-}
-
-.stats {
-    display: flex;
-    gap: 25px;
-}
-
-.stats span {
-    background: #f8f9fa;
-    padding: 6px 15px;
-    border-radius: 30px;
-    font-weight: 600;
-    color: #495057;
-    font-size: 0.9em;
-}
-
-.btn-small {
-    background: #e9ecef;
-    border: none;
-    padding: 10px 24px;
-    border-radius: 30px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    color: #495057;
-}
-
-.btn-small:hover {
-    background: #dee2e6;
-    transform: scale(1.02);
-}
-
-.garage-content {
-    display: flex;
-    flex-direction: column;
-    gap: 30px;
-}
-
-.car-preview {
-    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-    border-radius: 24px;
-    padding: 25px;
-    text-align: center;
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.05), 0 4px 12px rgba(0,0,0,0.1);
-}
-
-#carCanvas {
-    background: linear-gradient(180deg, #87CEEB 0%, #F4A460 100%);
-    border-radius: 20px;
-    max-width: 100%;
-    height: auto;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-}
-
-.upgrades-panel {
-    background: #f8f9fa;
-    border-radius: 24px;
-    padding: 25px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-}
-
-.upgrades-panel h3 {
-    color: #212529;
-    margin-bottom: 20px;
-    font-size: 1.4em;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.upgrade-list {
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-}
-
-.upgrade-item {
-    background: white;
-    padding: 18px;
-    border-radius: 20px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    transition: all 0.3s ease;
-}
-
-.upgrade-item:hover {
-    transform: translateX(5px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-}
-
-.upgrade-info {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 12px;
-}
-
-.upgrade-name {
-    font-weight: 700;
+h1 {
     color: #ff6b35;
+    font-size: 2.2em;
+    margin-bottom: 10px;
+}
+
+h2 {
+    color: #ff6b35;
+}
+
+input {
+    width: 100%;
+    padding: 14px;
+    margin: 15px 0;
+    border-radius: 40px;
+    border: none;
+    background: #2a2a35;
+    color: white;
     font-size: 1.1em;
+    text-align: center;
+    outline: none;
 }
 
-.upgrade-level {
-    color: #6c757d;
-    font-size: 0.9em;
-    font-weight: 500;
-}
-
-.upgrade-bar {
-    background: #e9ecef;
-    height: 8px;
-    border-radius: 10px;
-    overflow: hidden;
-    margin-bottom: 15px;
-}
-
-.upgrade-progress {
-    background: linear-gradient(90deg, #ff6b35, #ff8c5a);
-    height: 100%;
-    border-radius: 10px;
-    transition: width 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
-}
-
-.upgrade-btn {
-    background: linear-gradient(135deg, #4CAF50, #45a049);
+button {
+    background: #ff6b35;
     color: white;
     border: none;
-    padding: 12px 18px;
-    border-radius: 14px;
+    padding: 12px 24px;
+    border-radius: 40px;
+    font-weight: bold;
     cursor: pointer;
-    font-weight: 600;
-    width: 100%;
-    transition: all 0.3s ease;
-    font-size: 0.9em;
+    font-size: 1em;
+    transition: 0.2s;
+    pointer-events: auto;
 }
 
-.upgrade-btn:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
-}
-
-.upgrade-btn:disabled {
-    background: #ced4da;
-    cursor: not-allowed;
-    opacity: 0.6;
-}
-
-.action-buttons {
-    display: flex;
-    gap: 20px;
-    margin-top: 10px;
+button:hover {
+    transform: scale(1.02);
+    background: #ff8555;
 }
 
 .btn-secondary {
-    background: linear-gradient(135deg, #6c757d, #5a6268);
+    background: #4CAF50;
+}
+
+.btn-exit {
+    background: #dc3545;
+}
+
+/* HUD do jogo */
+.game-hud {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+    border-radius: 20px;
+    padding: 12px 20px;
     color: white;
-    border: none;
-    padding: 16px 25px;
-    font-size: 1.1em;
-    font-weight: 600;
-    border-radius: 16px;
-    cursor: pointer;
-    flex: 1;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    font-family: monospace;
+    z-index: 20;
+    pointer-events: none;
+    border-left: 4px solid #ff6b35;
+    font-weight: bold;
 }
 
-.btn-secondary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+.game-hud p {
+    margin: 4px 0;
+    font-size: 14px;
 }
 
-/* ========== MODAL ========== */
+.speed-value {
+    font-size: 28px;
+    color: #ffaa66;
+}
+
+/* Controles da corrida */
+.race-controls {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    border-radius: 50px;
+    padding: 10px 25px;
+    display: flex;
+    gap: 25px;
+    z-index: 20;
+    pointer-events: auto;
+    backdrop-filter: blur(4px);
+}
+
+.control-hint {
+    color: white;
+    font-size: 13px;
+    display: flex;
+    gap: 20px;
+}
+
+/* Upgrades */
+.upgrade-item {
+    background: #2a2a35;
+    margin: 15px 0;
+    padding: 12px;
+    border-radius: 20px;
+    text-align: left;
+}
+
+.upgrade-bar {
+    background: #444;
+    height: 8px;
+    border-radius: 4px;
+    margin: 8px 0;
+}
+
+.upgrade-progress {
+    background: #ff6b35;
+    height: 100%;
+    border-radius: 4px;
+    width: 0%;
+}
+
+/* Lista de jogadores */
+.players-list ul {
+    list-style: none;
+    padding: 0;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.players-list li {
+    background: #2a2a35;
+    margin: 5px 0;
+    padding: 10px;
+    border-radius: 12px;
+}
+
+/* Modal */
 .modal {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(8px);
-    display: flex;
+    background: rgba(0, 0, 0, 0.9);
+    display: none;
     justify-content: center;
     align-items: center;
-    z-index: 1000;
-    animation: fadeIn 0.3s ease;
+    z-index: 200;
 }
 
-.modal.hidden {
-    display: none;
+.modal.show {
+    display: flex;
 }
 
 .modal-content {
-    background: white;
-    padding: 35px;
+    background: #1e1e2a;
+    padding: 30px;
     border-radius: 32px;
-    text-align: center;
-    max-width: 450px;
     width: 90%;
-    animation: modalSlideIn 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
-}
-
-@keyframes modalSlideIn {
-    from {
-        opacity: 0;
-        transform: scale(0.9) translateY(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-    }
-}
-
-.modal-content h3 {
-    color: #ff6b35;
-    margin-bottom: 20px;
-    font-size: 1.8em;
-}
-
-.modal-content p {
-    color: #6c757d;
-    margin-bottom: 15px;
+    max-width: 400px;
+    text-align: center;
+    color: white;
 }
 
 .modal-content input {
-    width: 100%;
-    padding: 15px;
-    font-size: 1.2em;
+    background: #333;
     text-align: center;
-    letter-spacing: 4px;
-    border: 2px solid #e9ecef;
-    border-radius: 16px;
-    margin: 20px 0;
-    font-weight: 700;
-    font-family: monospace;
-    background: #f8f9fa;
-    transition: all 0.3s ease;
+    letter-spacing: 2px;
+    font-size: 1.5em;
 }
 
-.modal-content input:focus {
-    border-color: #ff6b35;
-    outline: none;
-    background: white;
-    box-shadow: 0 0 0 4px rgba(255,107,53,0.1);
-}
-
-.modal-buttons {
-    display: flex;
-    gap: 15px;
-}
-
-.modal-buttons button {
-    flex: 1;
-    padding: 14px;
-    border-radius: 14px;
-    cursor: pointer;
-    border: none;
-    font-weight: 600;
-    transition: all 0.3s ease;
-}
-
+/* Seletores */
+.distance-selector,
 .players-selector {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 25px;
-    margin: 25px 0;
+    gap: 20px;
+    margin: 15px 0;
 }
 
-.players-selector button {
-    width: 48px;
-    height: 48px;
-    font-size: 24px;
-    font-weight: bold;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #ff6b35, #ff8c5a);
-    color: white;
-    border: none;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-}
-
-.players-selector button:hover {
-    transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(255,107,53,0.4);
-}
-
+.distance-selector span,
 .players-selector span {
     font-size: 28px;
     font-weight: bold;
-    min-width: 50px;
-    text-align: center;
-    color: #212529;
+    min-width: 80px;
 }
 
-.small-text {
-    font-size: 12px;
-    color: #adb5bd;
-    margin-bottom: 20px;
-}
-
-/* ========== TELA DE CORRIDA ========== */
-.race-header {
+.flex-btns {
     display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 20px;
-    padding: 15px 25px;
-    background: linear-gradient(135deg, #1a1a2e, #16213e);
-    color: white;
-    border-radius: 20px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-}
-
-.race-info {
-    font-size: 1.5em;
-    font-weight: 700;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-}
-
-.race-info span {
-    background: linear-gradient(135deg, #ff6b35, #ffaa7a);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-}
-
-#gameCanvas {
-    background: #1a472a;
-    border-radius: 20px;
-    width: 100%;
-    height: auto;
-    cursor: none;
-    display: block;
-    margin: 0 auto;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-    border: 3px solid rgba(255,107,53,0.3);
-}
-
-.race-controls {
+    gap: 12px;
     margin-top: 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 15px;
 }
 
-.control-hint {
-    display: flex;
-    gap: 25px;
-    background: linear-gradient(135deg, #2c3e50, #1a2632);
-    padding: 12px 24px;
-    border-radius: 50px;
-    font-size: 0.9em;
-    font-weight: 500;
-    color: white;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), 0 4px 12px rgba(0,0,0,0.2);
+.flex-btns button {
+    flex: 1;
 }
 
-.control-hint span {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.btn-exit {
-    background: linear-gradient(135deg, #dc3545, #c82333);
-    color: white;
-    border: none;
-    padding: 12px 28px;
-    border-radius: 50px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(220,53,69,0.3);
-}
-
-.btn-exit:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 18px rgba(220,53,69,0.4);
-}
-
-.race-result {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: white;
-    padding: 40px;
-    border-radius: 32px;
-    text-align: center;
-    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
-    z-index: 100;
-    min-width: 350px;
-    animation: modalSlideIn 0.4s ease;
-}
-
-.race-result.hidden {
-    display: none;
-}
-
-.race-result h2 {
-    font-size: 2em;
-    margin-bottom: 15px;
-}
-
-.race-result p {
-    font-size: 1.2em;
-    margin-bottom: 25px;
-    color: #6c757d;
-}
-
-.race-result button {
-    background: linear-gradient(135deg, #ff6b35, #ff8c5a);
-    color: white;
-    border: none;
-    padding: 14px 32px;
-    border-radius: 40px;
-    cursor: pointer;
-    font-size: 1em;
-    font-weight: 600;
-    transition: all 0.3s ease;
-}
-
-.race-result button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(255,107,53,0.4);
-}
-
-/* ========== TELA DE ESPERA ========== */
-.waiting-container {
-    text-align: center;
-    padding: 40px;
-    max-width: 550px;
-    margin: 0 auto;
-}
-
-.waiting-container h2 {
-    color: #ff6b35;
-    margin-bottom: 30px;
-    font-size: 2em;
-}
-
-.room-code {
-    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-    padding: 25px;
-    border-radius: 28px;
-    margin-bottom: 30px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-}
-
-.room-code span {
-    display: block;
-    color: #6c757d;
-    margin-bottom: 10px;
-    font-weight: 500;
-}
-
-.room-code h1 {
-    font-size: 3.5em;
-    letter-spacing: 8px;
-    color: #ff6b35;
-    margin: 15px 0;
-    font-family: monospace;
-    font-weight: 800;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-}
-
-#copyCodeBtn {
-    background: linear-gradient(135deg, #4CAF50, #45a049);
-    color: white;
-    border: none;
-    padding: 10px 25px;
-    border-radius: 40px;
-    cursor: pointer;
-    font-weight: 600;
-    margin-top: 10px;
-    transition: all 0.3s ease;
-}
-
-#copyCodeBtn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(76,175,80,0.4);
-}
-
-.players-list {
-    background: #f8f9fa;
-    padding: 20px;
-    border-radius: 24px;
-    margin-bottom: 30px;
-}
-
-.players-list h3 {
-    margin-bottom: 15px;
-    color: #212529;
-}
-
-.players-list ul {
-    list-style: none;
-    padding: 0;
-}
-
-.players-list li {
-    padding: 12px 18px;
-    background: white;
-    margin: 8px 0;
-    border-radius: 14px;
-    font-weight: 600;
-    color: #ff6b35;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.waiting-info {
-    color: #6c757d;
-    margin-bottom: 30px;
-}
-
-.waiting-info p {
-    margin: 10px 0;
-}
-
-#cancelRoomBtn {
-    background: linear-gradient(135deg, #dc3545, #c82333);
-    color: white;
-    border: none;
-    padding: 14px 32px;
-    border-radius: 40px;
-    cursor: pointer;
-    font-size: 1em;
-    font-weight: 600;
-    transition: all 0.3s ease;
-}
-
-#cancelRoomBtn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 18px rgba(220,53,69,0.4);
-}
-
-/* ========== ANIMAÇÕES ========== */
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-@keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.02); }
-}
-
-.pulse {
-    animation: pulse 1s ease infinite;
-}
-
-/* ========== RESPONSIVIDADE ========== */
+/* Responsividade */
 @media (max-width: 768px) {
-    .screen {
+    .card {
         padding: 25px;
     }
     
-    .logo-area h1 {
-        font-size: 2em;
-    }
-    
     .control-hint {
-        font-size: 0.7em;
-        gap: 12px;
-        padding: 10px 18px;
+        font-size: 10px;
+        gap: 10px;
     }
     
-    .action-buttons {
-        flex-direction: column;
-    }
-    
-    .stats {
-        gap: 12px;
-        flex-wrap: wrap;
-    }
-    
-    .stats span {
-        font-size: 0.8em;
-        padding: 4px 12px;
-    }
-    
-    .player-info h2 {
-        font-size: 1.4em;
-    }
-    
-    .header {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    
-    .room-code h1 {
-        font-size: 2.5em;
-        letter-spacing: 5px;
-    }
-    
-    .race-result {
-        min-width: 280px;
-        padding: 30px;
-    }
-    
-    .race-result h2 {
-        font-size: 1.5em;
-    }
-}
-
-@media (max-width: 480px) {
-    .control-hint {
-        flex-direction: column;
-        gap: 5px;
-        align-items: center;
-    }
-    
-    .modal-content {
-        padding: 25px;
-    }
-    
-    .players-selector {
-        gap: 15px;
-    }
-    
-    .players-selector button {
-        width: 40px;
-        height: 40px;
-        font-size: 20px;
+    .speed-value {
+        font-size: 22px;
     }
 }
