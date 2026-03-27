@@ -3,20 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Carrinho de Rolimã - PlayCanvas 3D</title>
+    <title>Rolimã Racer</title>
     
-    <!-- Estilos -->
     <link rel="stylesheet" href="style.css">
     
     <!-- PlayCanvas Engine -->
     <script src="https://code.playcanvas.com/playcanvas-latest.js"></script>
     
-    <!-- Firebase -->
+    <!-- Firebase SDK (versão compat para usar com CDN) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    
-    <!-- Configuração Firebase -->
-    <script src="firebase-config.js"></script>
 </head>
 <body>
     <!-- Canvas do PlayCanvas -->
@@ -42,8 +38,14 @@
                     <button id="logoutBtn" class="btn-exit">Sair</button>
                 </div>
                 
+                <!-- Stats do Jogador -->
+                <div class="player-stats">
+                    <span>🏆 Vitórias: <span id="winsCount">0</span></span>
+                    <span>⭐ Pontos: <span id="pointsCount">100</span></span>
+                </div>
+                
                 <!-- Seleção de Carros 3D -->
-                <div style="margin-bottom: 25px;">
+                <div style="margin: 25px 0;">
                     <h3>🚗 ESCOLHA SEU CARRINHO</h3>
                     <div class="car-selector">
                         <button id="prevCarBtn" class="car-nav">◀</button>
@@ -59,9 +61,9 @@
                     </div>
                 </div>
                 
-                <!-- Criação de Sala -->
+                <!-- Criação de Sala Solo -->
                 <div class="room-section">
-                    <h3>🎮 CRIAR CORRIDA SOLO</h3>
+                    <h3>🎮 CORRIDA SOLO</h3>
                     <div class="distance-selector">
                         <button id="distMinus">-</button>
                         <span id="distanceValue">1000</span>
@@ -69,7 +71,7 @@
                     </div>
                     <p>Distância da descida (metros)</p>
                     <button id="createSoloRoomBtn" class="btn-primary" style="width: 100%; margin-top: 15px;">
-                        🏁 INICIAR DESCIDA SOLO
+                        🏁 INICIAR DESCIDA
                     </button>
                 </div>
             </div>
@@ -96,7 +98,7 @@
                     <span>← A / → D = Desviar</span>
                     <span>↓ S = Freiar</span>
                 </div>
-                <button id="exitRaceBtn" class="btn-exit">SAIR DA CORRIDA</button>
+                <button id="exitRaceBtn" class="btn-exit">SAIR</button>
             </div>
         </div>
         
@@ -110,7 +112,9 @@
         </div>
     </div>
     
-    <!-- Script do Jogo -->
+    <!-- Firebase Config -->
+    <script src="firebase-config.js"></script>
+    <!-- Game Script -->
     <script src="game-script.js"></script>
 </body>
 </html>
