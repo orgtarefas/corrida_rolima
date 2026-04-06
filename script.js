@@ -66,11 +66,11 @@ function init3D() {
         }, 3000);
     });
     
-    // Luzes
-    const ambientLight = new THREE.AmbientLight(0x404060, 0.6);
+    // ========== LUZES MELHORADAS PARA TEXTURAS ==========
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
     scene.add(ambientLight);
     
-    const mainLight = new THREE.DirectionalLight(0xffffff, 1);
+    const mainLight = new THREE.DirectionalLight(0xffffff, 1.2);
     mainLight.position.set(5, 10, 7);
     mainLight.castShadow = true;
     mainLight.receiveShadow = true;
@@ -78,24 +78,27 @@ function init3D() {
     mainLight.shadow.mapSize.height = 1024;
     scene.add(mainLight);
     
-    const fillLight = new THREE.PointLight(0x4466cc, 0.4);
+    const fillLight = new THREE.PointLight(0x88aaff, 0.5);
     fillLight.position.set(-2, 3, 4);
     scene.add(fillLight);
     
-    const backLight = new THREE.PointLight(0xffaa66, 0.3);
+    const backLight = new THREE.PointLight(0xffaa66, 0.4);
     backLight.position.set(0, 2, -5);
     scene.add(backLight);
     
-    const rimLight = new THREE.PointLight(0xff6633, 0.5);
-    rimLight.position.set(2, 1, -3);
+    const rimLight = new THREE.PointLight(0xff6633, 0.6);
+    rimLight.position.set(2, 1.5, -3);
     scene.add(rimLight);
+    
+    const fillLight2 = new THREE.PointLight(0x66ccff, 0.3);
+    fillLight2.position.set(3, 2, 2);
+    scene.add(fillLight2);
     
     // Chão com grade
     const gridHelper = new THREE.GridHelper(10, 20, 0x888888, 0x444444);
     gridHelper.position.y = -0.5;
     scene.add(gridHelper);
     
-    // Plano de sombra
     const shadowPlane = new THREE.Mesh(
         new THREE.PlaneGeometry(8, 8),
         new THREE.ShadowMaterial({ opacity: 0.3, color: 0x000000, transparent: true, side: THREE.DoubleSide })
@@ -122,7 +125,7 @@ window.addEventListener('resize', () => {
     }
 });
 
-// ==================== CARREGAR MODELO 3D ====================
+// ==================== CARREGAR MODELO COM TEXTURAS ====================
 function carregarModelo() {
     const loadingDiv = document.getElementById('loading');
     loadingDiv.classList.remove('hidden');
@@ -132,6 +135,7 @@ function carregarModelo() {
     }
     
     const finalizarModelo = (object) => {
+        // Ajustar escala e posição
         const box = new THREE.Box3().setFromObject(object);
         const size = box.getSize(new THREE.Vector3());
         const center = box.getCenter(new THREE.Vector3());
@@ -145,15 +149,18 @@ function carregarModelo() {
             -center.z * scale
         );
         
+        // Garantir que as texturas sejam aplicadas
         object.traverse((child) => {
             if (child.isMesh) {
                 child.castShadow = true;
                 child.receiveShadow = true;
+                
+                // Se ainda não tem material, cria um padrão
                 if (!child.material) {
                     child.material = new THREE.MeshStandardMaterial({
                         color: 0xcc3333,
-                        roughness: 0.4,
-                        metalness: 0.6
+                        roughness: 0.3,
+                        metalness: 0.7
                     });
                 }
             }
@@ -164,26 +171,31 @@ function carregarModelo() {
         
         loadingDiv.classList.add('hidden');
         console.log('✅ Modelo carregado com sucesso!');
+        mostrarToast('Modelo 3D carregado!', 'success');
     };
     
     const erroModelo = (error) => {
         console.error('Erro:', error);
         loadingDiv.classList.add('hidden');
-        mostrarMensagem('❌ Erro ao carregar modelo! Verifique o console', 'error');
+        mostrarToast('Erro ao carregar modelo. Verifique os arquivos.', 'error');
     };
     
-    // Verificar se existe MTL
+    // Tentar carregar com MTL e texturas
     fetch(carro.caminhoMTL, { method: 'HEAD' })
         .then(response => {
             if (response.ok) {
+                console.log('📁 Arquivo MTL encontrado, carregando com texturas...');
                 const mtlLoader = new MTLLoader();
                 mtlLoader.setPath('./models/car1/');
+                mtlLoader.setTexturePath('./models/car1/textures/');
+                
                 mtlLoader.load(carro.caminhoMTL, (materials) => {
                     materials.preload();
                     const objLoader = new OBJLoader();
                     objLoader.setMaterials(materials);
                     objLoader.load(carro.caminhoOBJ, finalizarModelo, null, erroModelo);
-                }, undefined, () => {
+                }, undefined, (error) => {
+                    console.warn('Erro no MTL:', error);
                     carregarSemMTL();
                 });
             } else {
@@ -193,6 +205,7 @@ function carregarModelo() {
         .catch(() => carregarSemMTL());
     
     function carregarSemMTL() {
+        console.log('📁 Nenhum MTL encontrado, carregando apenas OBJ com cor padrão');
         const objLoader = new OBJLoader();
         objLoader.load(carro.caminhoOBJ, finalizarModelo, null, erroModelo);
     }
@@ -213,7 +226,6 @@ function carregarDadosFirebase() {
                 carroSelecionado: data.carroSelecionado || 'carro1'
             };
         } else {
-            // Criar novo jogador
             set(playerRef, {
                 pontos: 100,
                 vitorias: 0,
@@ -243,21 +255,19 @@ function atualizarUI() {
 function selecionarCarro() {
     const playerRef = ref(database, `jogadores/${playerId}`);
     update(playerRef, { carroSelecionado: 'carro1' });
-    
-    mostrarMensagem(`✅ ${carro.nome} selecionado! Pronto para a corrida!`, 'success');
+    mostrarToast(`✅ ${carro.nome} selecionado!`, 'success');
 }
 
-function mostrarMensagem(texto, tipo) {
-    const msg = document.createElement('div');
-    msg.className = 'toast-message';
-    msg.textContent = texto;
-    msg.style.background = tipo === 'success' ? '#4caf50' : '#f44336';
-    msg.style.color = 'white';
-    document.body.appendChild(msg);
+function mostrarToast(mensagem, tipo) {
+    const toastContainer = document.getElementById('toast');
+    const toast = document.createElement('div');
+    toast.className = `toast ${tipo === 'error' ? 'error' : ''}`;
+    toast.textContent = mensagem;
+    toastContainer.appendChild(toast);
     
     setTimeout(() => {
-        msg.style.opacity = '0';
-        setTimeout(() => msg.remove(), 300);
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
     }, 3000);
 }
 
