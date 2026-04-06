@@ -3,67 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rolimã Racer - Garagem com Firebase</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Corrida 3D</title>
+    <style>
+        body { margin: 0; overflow: hidden; font-family: Arial; }
+        #info {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            color: white;
+            background: rgba(0,0,0,0.7);
+            padding: 10px;
+            border-radius: 5px;
+            z-index: 100;
+            font-size: 14px;
+        }
+        #velocimetro {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            color: #00ff00;
+            background: rgba(0,0,0,0.8);
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-family: monospace;
+            font-size: 24px;
+            font-weight: bold;
+            z-index: 100;
+            border: 2px solid #00ff00;
+        }
+        .loading {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            z-index: 100;
+        }
+    </style>
 </head>
 <body>
-    <div id="canvas-container"></div>
-
-    <!-- Painel de Cores Principal -->
-    <div class="painel painel-cores">
-        <h3>🎨 COR PRINCIPAL</h3>
-        <div class="grid-cores">
-            <button class="cor-btn" id="btnVermelho" style="background: #ff3333;"></button>
-            <button class="cor-btn" id="btnAzul" style="background: #3366ff;"></button>
-            <button class="cor-btn" id="btnVerde" style="background: #33ff66;"></button>
-            <button class="cor-btn" id="btnAmarelo" style="background: #ffcc00;"></button>
-            <button class="cor-btn" id="btnPreto" style="background: #222;"></button>
-            <button class="cor-btn" id="btnBranco" style="background: #eee;"></button>
-            <button class="cor-btn" id="btnPrata" style="background: #ccc;"></button>
-            <button class="cor-btn" id="btnLaranja" style="background: #ff6600;"></button>
-            <button class="cor-btn" id="btnRoxo" style="background: #9933ff;"></button>
-            <button class="cor-btn" id="btnRosa" style="background: #ff66cc;"></button>
-        </div>
+    <div id="info">
+        🎮 WASD ou Setas para dirigir | Espaço para drift
     </div>
-
-    <!-- Painel de Cores das Listras -->
-    <div class="painel painel-listras">
-        <h3>🎨 COR DAS LISTRAS</h3>
-        <div class="grid-cores">
-            <button class="cor-btn pequeno" id="btnListraBranca" style="background: #ffffff;"></button>
-            <button class="cor-btn pequeno" id="btnListraPreta" style="background: #000000;"></button>
-            <button class="cor-btn pequeno" id="btnListraAmarela" style="background: #ffcc00;"></button>
-            <button class="cor-btn pequeno" id="btnListraVermelha" style="background: #ff3333;"></button>
-            <button class="cor-btn pequeno" id="btnListraAzul" style="background: #3366ff;"></button>
-            <button class="cor-btn pequeno" id="btnListraDourada" style="background: #ffaa33;"></button>
-        </div>
-        
-        <div class="divider"></div>
-        
-        <h3>🏁 ESTILO DAS LISTRAS</h3>
-        <div class="botoes-linha">
-            <button id="btnListraDupla" class="btn-estilo ativo">Dupla</button>
-            <button id="btnListraSimples" class="btn-estilo">Simples</button>
-            <button id="btnListraRacing" class="btn-estilo">Racing</button>
-        </div>
-        
-        <button id="btnToggleListras" class="btn-toggle">🔘 Remover Listras</button>
+    <div id="velocimetro">
+        0 km/h
     </div>
-
     <div id="loading" class="loading">
-        <div class="spinner"></div>
-        <p>Carregando modelo 3D...</p>
+        Carregando...
     </div>
-
-    <div id="toast"></div>
 
     <script type="importmap">
         {
             "imports": {
                 "three": "https://unpkg.com/three@0.128.0/build/three.module.js",
-                "three/addons/": "https://unpkg.com/three@0.128.0/examples/jsm/",
-                "firebase/app": "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js",
-                "firebase/database": "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js"
+                "three/addons/": "https://unpkg.com/three@0.128.0/examples/jsm/"
             }
         }
     </script>
