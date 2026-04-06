@@ -2,79 +2,98 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Rolimã Racer - Escolha seu Carrinho</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rolimã Racer - Carros 3D</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        #info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            z-index: 100;
+            font-size: 14px;
+            pointer-events: none;
+        }
+        .controls-hint {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.5);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-size: 12px;
+            z-index: 100;
+            pointer-events: none;
+        }
+        .car-selector {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            z-index: 100;
+            background: rgba(0,0,0,0.8);
+            padding: 15px 25px;
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+        }
+        .car-btn {
+            background: #ff6b35;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 30px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .car-btn:hover {
+            transform: scale(1.05);
+            background: #ff8855;
+        }
+        .car-btn.active {
+            background: #4caf50;
+            box-shadow: 0 0 15px #4caf50;
+        }
+        .car-btn.locked {
+            background: #555;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        .car-btn.locked:hover {
+            transform: none;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <div class="title">
-            <h1>🏎️ ROLIMÃ RACER</h1>
-            <p>Escolha seu carrinho para a descida</p>
-        </div>
-
-        <div class="cars-container" id="carsContainer">
-            <!-- Carro 1 - Fúria Vermelha -->
-            <div class="car-card" data-car-id="carro1">
-                <div class="car-preview">
-                    <div class="carro1-visual">
-                        <div class="car-body red"></div>
-                        <div class="car-roof black"></div>
-                        <div class="wheel wheel1"></div>
-                        <div class="wheel wheel2"></div>
-                        <div class="wheel wheel3"></div>
-                        <div class="wheel wheel4"></div>
-                    </div>
-                </div>
-                <h2 class="car-name">🔥 Fúria Vermelha</h2>
-                <div class="car-stats">
-                    <div class="stat">⚡ Velocidade: <span class="stat-value">85%</span></div>
-                    <div class="stat-bar"><div class="bar-fill" style="width: 85%"></div></div>
-                    <div class="stat">🎮 Controle: <span class="stat-value">70%</span></div>
-                    <div class="stat-bar"><div class="bar-fill" style="width: 70%"></div></div>
-                    <div class="stat">💪 Durabilidade: <span class="stat-value">65%</span></div>
-                    <div class="stat-bar"><div class="bar-fill" style="width: 65%"></div></div>
-                    <div class="stat">🚀 Aceleração: <span class="stat-value">90%</span></div>
-                    <div class="stat-bar"><div class="bar-fill" style="width: 90%"></div></div>
-                </div>
-                <div class="car-price">💰 Grátis</div>
-            </div>
-
-            <!-- Carro 2 - Touro Azul -->
-            <div class="car-card" data-car-id="carro2">
-                <div class="car-preview">
-                    <div class="carro2-visual">
-                        <div class="car-body blue"></div>
-                        <div class="car-bed gray"></div>
-                        <div class="car-cabin lightblue"></div>
-                        <div class="wheel wheel1"></div>
-                        <div class="wheel wheel2"></div>
-                        <div class="wheel wheel3"></div>
-                        <div class="wheel wheel4"></div>
-                    </div>
-                </div>
-                <h2 class="car-name">💪 Touro Azul</h2>
-                <div class="car-stats">
-                    <div class="stat">⚡ Velocidade: <span class="stat-value">60%</span></div>
-                    <div class="stat-bar"><div class="bar-fill" style="width: 60%"></div></div>
-                    <div class="stat">🎮 Controle: <span class="stat-value">50%</span></div>
-                    <div class="stat-bar"><div class="bar-fill" style="width: 50%"></div></div>
-                    <div class="stat">💪 Durabilidade: <span class="stat-value">95%</span></div>
-                    <div class="stat-bar"><div class="bar-fill" style="width: 95%"></div></div>
-                    <div class="stat">🚀 Aceleração: <span class="stat-value">45%</span></div>
-                    <div class="stat-bar"><div class="bar-fill" style="width: 45%"></div></div>
-                </div>
-                <div class="car-price">🔒 Desbloquear com vitórias</div>
-            </div>
-        </div>
-
-        <div class="action-buttons">
-            <button id="confirmBtn" class="btn-confirm" disabled>✅ CONFIRMAR CARRO</button>
-        </div>
-
-        <div id="selectedCarDisplay" class="selected-display"></div>
+    <div id="info">
+        🚗 Conectando ao Firebase...
+    </div>
+    <div class="controls-hint">
+        🖱️ Arraste para girar | 🔍 Scroll para zoom | 🔄 Rotação automática
     </div>
 
-    <script src="script.js"></script>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.128.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.128.0/examples/jsm/",
+                "firebase/app": "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js",
+                "firebase/database": "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js"
+            }
+        }
+    </script>
+
+    <script type="module" src="script.js"></script>
 </body>
 </html>
