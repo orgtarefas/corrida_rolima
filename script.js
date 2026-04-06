@@ -296,7 +296,7 @@ function carregarModelo() {
             // Posicionar no chão
             carModel.position.set(
                 -center.x * scale,
-                -center.y * scale + 0.1,
+                -center.y * scale,
                 -center.z * scale
             );
             
