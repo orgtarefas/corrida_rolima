@@ -298,3 +298,48 @@ body {
         padding: 10px;
     }
 }
+
+/* Painel de controle do CARRO */
+.carro-panel {
+    position: fixed;
+    left: 20px;
+    top: 20px;
+    width: 260px;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 15px;
+    z-index: 20;
+    color: white;
+    font-size: 12px;
+    border-left: 3px solid #4caf50;
+    pointer-events: auto;
+}
+
+.carro-panel h3 {
+    color: #4caf50;
+    margin-bottom: 10px;
+    font-size: 14px;
+    text-align: center;
+}
+
+.carro-group {
+    margin-bottom: 15px;
+    padding: 8px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 8px;
+}
+
+.carro-group h4 {
+    font-size: 12px;
+    margin-bottom: 8px;
+    color: #4caf50;
+}
+
+.carro-group .coords {
+    font-family: monospace;
+    font-size: 11px;
+    color: #4caf50;
+    margin-bottom: 8px;
+    text-align: center;
+}
