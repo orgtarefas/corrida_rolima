@@ -30,7 +30,7 @@ let farolTraseiroDireito = null;
 
 // Posições relativas ao carro (valores aproximados - você pode ajustar)
 const POSICOES_FAROIS = {
-    frontal_esquerdo: { x: -0.6, y: 0.3, z: 1.4, cor: 0xffaa66, intensidade: 1.0 },
+    frontal_esquerdo: { x: -0.6, y: 1.3, z: 1.4, cor: 0xffaa66, intensidade: 1.0 },
     frontal_direito:  { x: 0.6, y: 0.3, z: 1.4, cor: 0xffaa66, intensidade: 1.0 },
     traseiro_esquerdo: { x: -0.6, y: 0.3, z: -1.3, cor: 0xff3333, intensidade: 0.8 },
     traseiro_direito:  { x: 0.6, y: 0.3, z: -1.3, cor: 0xff3333, intensidade: 0.8 }
