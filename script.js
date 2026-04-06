@@ -1,15 +1,13 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
-import { MTLLoader } from 'three/addons/loaders/MTLLoader.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { database, ref, set, get, update, onValue } from './firebase-config.js';
 
 // ==================== CONFIGURAÇÃO DO CARRO ====================
 const carro = {
     id: 'carro1',
     nome: '🔥 Fúria Vermelha',
-    caminhoOBJ: './models/car1/car1.obj',
-    caminhoMTL: './models/car1/car1.mtl',
+    caminhoGLB: './models/car1/car1.glb',  // ← USANDO GLB
     stats: {
         velocidade: 85,
         controle: 70,
@@ -34,15 +32,16 @@ function init3D() {
     
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x0a0a1a);
-    scene.fog = new THREE.Fog(0x0a0a1a, 10, 30);
+    scene.fog = new THREE.FogExp2(0x0a0a1a, 0.008);
     
     camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(4, 3, 5);
+    camera.position.set(5, 3, 6);
     camera.lookAt(0, 0.5, 0);
     
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.setPixelRatio(window.devicePixelRatio);
     container.appendChild(renderer.domElement);
     
@@ -50,7 +49,7 @@ function init3D() {
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
     controls.autoRotate = true;
-    controls.autoRotateSpeed = 1.5;
+    controls.autoRotateSpeed = 1.2;
     controls.enableZoom = true;
     controls.enablePan = true;
     controls.target.set(0, 0.5, 0);
@@ -66,8 +65,8 @@ function init3D() {
         }, 3000);
     });
     
-    // ========== LUZES MELHORADAS PARA TEXTURAS ==========
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+    // Luzes
+    const ambientLight = new THREE.AmbientLight(0x404060, 0.5);
     scene.add(ambientLight);
     
     const mainLight = new THREE.DirectionalLight(0xffffff, 1.2);
@@ -78,33 +77,29 @@ function init3D() {
     mainLight.shadow.mapSize.height = 1024;
     scene.add(mainLight);
     
-    const fillLight = new THREE.PointLight(0x88aaff, 0.5);
-    fillLight.position.set(-2, 3, 4);
+    const fillLight = new THREE.PointLight(0x88aaff, 0.4);
+    fillLight.position.set(0, 1.5, 4);
     scene.add(fillLight);
     
-    const backLight = new THREE.PointLight(0xffaa66, 0.4);
-    backLight.position.set(0, 2, -5);
-    scene.add(backLight);
+    const warmLight = new THREE.PointLight(0xffaa66, 0.4);
+    warmLight.position.set(-3, 2, 2);
+    scene.add(warmLight);
     
-    const rimLight = new THREE.PointLight(0xff6633, 0.6);
-    rimLight.position.set(2, 1.5, -3);
+    const rimLight = new THREE.PointLight(0xff6633, 0.5);
+    rimLight.position.set(0, 1.5, -4);
     scene.add(rimLight);
     
-    const fillLight2 = new THREE.PointLight(0x66ccff, 0.3);
-    fillLight2.position.set(3, 2, 2);
-    scene.add(fillLight2);
-    
-    // Chão com grade
-    const gridHelper = new THREE.GridHelper(10, 20, 0x888888, 0x444444);
-    gridHelper.position.y = -0.5;
+    // Chão
+    const gridHelper = new THREE.GridHelper(12, 20, 0x888888, 0x444444);
+    gridHelper.position.y = -0.6;
     scene.add(gridHelper);
     
     const shadowPlane = new THREE.Mesh(
-        new THREE.PlaneGeometry(8, 8),
-        new THREE.ShadowMaterial({ opacity: 0.3, color: 0x000000, transparent: true, side: THREE.DoubleSide })
+        new THREE.PlaneGeometry(10, 10),
+        new THREE.ShadowMaterial({ opacity: 0.4, color: 0x000000, transparent: true, side: THREE.DoubleSide })
     );
     shadowPlane.rotation.x = -Math.PI / 2;
-    shadowPlane.position.y = -0.5;
+    shadowPlane.position.y = -0.6;
     shadowPlane.receiveShadow = true;
     scene.add(shadowPlane);
     
@@ -125,7 +120,7 @@ window.addEventListener('resize', () => {
     }
 });
 
-// ==================== CARREGAR MODELO COM TEXTURAS ====================
+// ==================== CARREGAR MODELO GLB ====================
 function carregarModelo() {
     const loadingDiv = document.getElementById('loading');
     loadingDiv.classList.remove('hidden');
@@ -134,85 +129,57 @@ function carregarModelo() {
         scene.remove(currentCar);
     }
     
-    const finalizarModelo = (object) => {
-        // Ajustar escala e posição
-        const box = new THREE.Box3().setFromObject(object);
-        const size = box.getSize(new THREE.Vector3());
-        const center = box.getCenter(new THREE.Vector3());
-        const maxDim = Math.max(size.x, size.y, size.z);
-        const scale = 2.5 / maxDim;
-        
-        object.scale.set(scale, scale, scale);
-        object.position.set(
-            -center.x * scale,
-            -center.y * scale + 0.2,
-            -center.z * scale
-        );
-        
-        // Garantir que as texturas sejam aplicadas
-        object.traverse((child) => {
-            if (child.isMesh) {
-                child.castShadow = true;
-                child.receiveShadow = true;
-                
-                // Se ainda não tem material, cria um padrão
-                if (!child.material) {
-                    child.material = new THREE.MeshStandardMaterial({
-                        color: 0xcc3333,
-                        roughness: 0.3,
-                        metalness: 0.7
-                    });
+    const loader = new GLTFLoader();
+    
+    loader.load(carro.caminhoGLB, 
+        (gltf) => {
+            const model = gltf.scene;
+            
+            // Ajustar escala e posição
+            const box = new THREE.Box3().setFromObject(model);
+            const size = box.getSize(new THREE.Vector3());
+            const center = box.getCenter(new THREE.Vector3());
+            const maxDim = Math.max(size.x, size.y, size.z);
+            const scale = 2.5 / maxDim;
+            
+            model.scale.set(scale, scale, scale);
+            model.position.set(
+                -center.x * scale,
+                -center.y * scale + 0.2,
+                -center.z * scale
+            );
+            
+            // Habilitar sombras
+            model.traverse((child) => {
+                if (child.isMesh) {
+                    child.castShadow = true;
+                    child.receiveShadow = true;
                 }
+            });
+            
+            scene.add(model);
+            currentCar = model;
+            
+            loadingDiv.classList.add('hidden');
+            console.log('✅ Carro GLB carregado com sucesso!');
+            mostrarToast('✅ Carro 3D carregado!', 'success');
+        },
+        (progress) => {
+            if (progress.total) {
+                const percent = (progress.loaded / progress.total * 100).toFixed(0);
+                const p = loadingDiv.querySelector('p');
+                if (p) p.textContent = `Carregando modelo 3D... ${percent}%`;
             }
-        });
-        
-        scene.add(object);
-        currentCar = object;
-        
-        loadingDiv.classList.add('hidden');
-        console.log('✅ Modelo carregado com sucesso!');
-        mostrarToast('Modelo 3D carregado!', 'success');
-    };
-    
-    const erroModelo = (error) => {
-        console.error('Erro:', error);
-        loadingDiv.classList.add('hidden');
-        mostrarToast('Erro ao carregar modelo. Verifique os arquivos.', 'error');
-    };
-    
-    // Tentar carregar com MTL e texturas
-    fetch(carro.caminhoMTL, { method: 'HEAD' })
-        .then(response => {
-            if (response.ok) {
-                console.log('📁 Arquivo MTL encontrado, carregando com texturas...');
-                const mtlLoader = new MTLLoader();
-                mtlLoader.setPath('./models/car1/');
-                mtlLoader.setTexturePath('./models/car1/textures/');
-                
-                mtlLoader.load(carro.caminhoMTL, (materials) => {
-                    materials.preload();
-                    const objLoader = new OBJLoader();
-                    objLoader.setMaterials(materials);
-                    objLoader.load(carro.caminhoOBJ, finalizarModelo, null, erroModelo);
-                }, undefined, (error) => {
-                    console.warn('Erro no MTL:', error);
-                    carregarSemMTL();
-                });
-            } else {
-                carregarSemMTL();
-            }
-        })
-        .catch(() => carregarSemMTL());
-    
-    function carregarSemMTL() {
-        console.log('📁 Nenhum MTL encontrado, carregando apenas OBJ com cor padrão');
-        const objLoader = new OBJLoader();
-        objLoader.load(carro.caminhoOBJ, finalizarModelo, null, erroModelo);
-    }
+        },
+        (error) => {
+            console.error('Erro ao carregar GLB:', error);
+            loadingDiv.classList.add('hidden');
+            mostrarToast('❌ Arquivo car1.glb não encontrado!', 'error');
+        }
+    );
 }
 
-// ==================== FIREBASE FUNCTIONS ====================
-
+// ==================== FIREBASE ====================
 function carregarDadosFirebase() {
     const playerRef = ref(database, `jogadores/${playerId}`);
     
@@ -282,5 +249,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     document.getElementById('selectCarBtn').addEventListener('click', selecionarCarro);
     
-    console.log('🚀 Sistema inicializado com Firebase!');
+    console.log('🚀 Sistema inicializado!');
+    console.log('📁 Caminho do GLB:', carro.caminhoGLB);
 });
