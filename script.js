@@ -22,7 +22,7 @@ let currentCar = null;
 let carModel = null;
 let faroisLigados = false;
 
-// ========== LUZES DOS FARÓIS ==========
+// ========== LUZES DOS FARÓIS (AGORA COM SPOTLIGHT) ==========
 let farolFrontalEsquerdo = null;
 let farolFrontalDireito = null;
 let farolTraseiroEsquerdo = null;
@@ -34,12 +34,12 @@ let esferaFD = null;
 let esferaTE = null;
 let esferaTD = null;
 
-// Posições atuais (valores padrão - você vai ajustar)
+// Posições ajustadas (suas medidas)
 let posicoesFarois = {
-    frontal_esquerdo: { x: -0.6, y: 0.3, z: 1.4 },
-    frontal_direito: { x: 0.6, y: 0.3, z: 1.4 },
-    traseiro_esquerdo: { x: -0.6, y: 0.3, z: -1.3 },
-    traseiro_direito: { x: 0.6, y: 0.3, z: -1.3 }
+    frontal_esquerdo: { x: -1.00, y: 0.15, z: 3.90 },
+    frontal_direito: { x: 1.00, y: 0.15, z: 3.90 },
+    traseiro_esquerdo: { x: -0.95, y: 0.25, z: -4.25 },
+    traseiro_direito: { x: 0.95, y: 0.25, z: -4.25 }
 };
 
 let playerId = 'jogador_default';
@@ -54,7 +54,7 @@ function init3D() {
     scene.fog = new THREE.FogExp2(0x111122, 0.008);
     
     camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(5, 2.5, 6);
+    camera.position.set(6, 3, 7);
     camera.lookAt(0, 0.3, 0);
     
     renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -66,7 +66,7 @@ function init3D() {
     controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
-    controls.autoRotate = false; // Desligado para facilitar ajuste
+    controls.autoRotate = false;
     controls.enableZoom = true;
     controls.enablePan = true;
     controls.target.set(0, 0.3, 0);
@@ -85,13 +85,13 @@ function init3D() {
     scene.add(fillLight);
     
     // Chão
-    const floor = new THREE.Mesh(new THREE.PlaneGeometry(12, 12), new THREE.MeshStandardMaterial({ color: 0x2a2a3a, roughness: 0.4 }));
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(15, 15), new THREE.MeshStandardMaterial({ color: 0x2a2a3a, roughness: 0.4 }));
     floor.rotation.x = -Math.PI / 2;
     floor.position.y = -0.2;
     floor.receiveShadow = true;
     scene.add(floor);
     
-    const gridHelper = new THREE.GridHelper(12, 20, 0x88aaff, 0x335588);
+    const gridHelper = new THREE.GridHelper(15, 20, 0x88aaff, 0x335588);
     gridHelper.position.y = -0.19;
     scene.add(gridHelper);
     
@@ -112,31 +112,48 @@ window.addEventListener('resize', () => {
     }
 });
 
-// ==================== CRIAR LUZES E ESFERAS ====================
+// ==================== CRIAR LUZES (SPOTLIGHT) E ESFERAS ====================
 function criarLuzesFarois() {
     if (!carModel) return;
     
-    // Farol Frontal Esquerdo
-    farolFrontalEsquerdo = new THREE.PointLight(0xffaa66, 0);
-    farolFrontalEsquerdo.distance = 12;
-    farolFrontalEsquerdo.decay = 1.5;
+    // ===== FARÓIS DIANTEIROS (apontam para FRENTE = +Z) =====
+    farolFrontalEsquerdo = new THREE.SpotLight(0xffaa66);
+    farolFrontalEsquerdo.angle = 0.6;      // Ângulo do cone de luz
+    farolFrontalEsquerdo.penumbra = 0.3;   // Suavidade nas bordas
+    farolFrontalEsquerdo.distance = 20;    // Alcance máximo
+    farolFrontalEsquerdo.decay = 1.0;      // Queda da intensidade
     farolFrontalEsquerdo.castShadow = true;
+    // Direção: apontando para FRENTE (posição atual + Z)
+    farolFrontalEsquerdo.target = carModel;
+    farolFrontalEsquerdo.target.position.set(0, 0.15, 10);
     
-    // Farol Frontal Direito
-    farolFrontalDireito = new THREE.PointLight(0xffaa66, 0);
-    farolFrontalDireito.distance = 12;
-    farolFrontalDireito.decay = 1.5;
+    farolFrontalDireito = new THREE.SpotLight(0xffaa66);
+    farolFrontalDireito.angle = 0.6;
+    farolFrontalDireito.penumbra = 0.3;
+    farolFrontalDireito.distance = 20;
+    farolFrontalDireito.decay = 1.0;
     farolFrontalDireito.castShadow = true;
+    farolFrontalDireito.target = carModel;
+    farolFrontalDireito.target.position.set(0, 0.15, 10);
     
-    // Farol Traseiro Esquerdo
-    farolTraseiroEsquerdo = new THREE.PointLight(0xff3333, 0);
-    farolTraseiroEsquerdo.distance = 8;
-    farolTraseiroEsquerdo.decay = 1.5;
+    // ===== FARÓIS TRASEIROS (apontam para TRÁS = -Z) =====
+    farolTraseiroEsquerdo = new THREE.SpotLight(0xff3333);
+    farolTraseiroEsquerdo.angle = 0.5;
+    farolTraseiroEsquerdo.penumbra = 0.3;
+    farolTraseiroEsquerdo.distance = 15;
+    farolTraseiroEsquerdo.decay = 1.0;
+    farolTraseiroEsquerdo.castShadow = true;
+    farolTraseiroEsquerdo.target = carModel;
+    farolTraseiroEsquerdo.target.position.set(0, 0.25, -10);
     
-    // Farol Traseiro Direito
-    farolTraseiroDireito = new THREE.PointLight(0xff3333, 0);
-    farolTraseiroDireito.distance = 8;
-    farolTraseiroDireito.decay = 1.5;
+    farolTraseiroDireito = new THREE.SpotLight(0xff3333);
+    farolTraseiroDireito.angle = 0.5;
+    farolTraseiroDireito.penumbra = 0.3;
+    farolTraseiroDireito.distance = 15;
+    farolTraseiroDireito.decay = 1.0;
+    farolTraseiroDireito.castShadow = true;
+    farolTraseiroDireito.target = carModel;
+    farolTraseiroDireito.target.position.set(0, 0.25, -10);
     
     // Adicionar ao carro
     carModel.add(farolFrontalEsquerdo);
@@ -144,7 +161,13 @@ function criarLuzesFarois() {
     carModel.add(farolTraseiroEsquerdo);
     carModel.add(farolTraseiroDireito);
     
-    // ESFERAS VISUAIS PARA AJUSTE
+    // Adicionar os alvos dos faróis (necessário para o spotlight funcionar)
+    carModel.add(farolFrontalEsquerdo.target);
+    carModel.add(farolFrontalDireito.target);
+    carModel.add(farolTraseiroEsquerdo.target);
+    carModel.add(farolTraseiroDireito.target);
+    
+    // ESFERAS VISUAIS PARA AJUSTE (mostram onde estão as luzes)
     const geometria = new THREE.SphereGeometry(0.08, 16, 16);
     
     esferaFE = new THREE.Mesh(geometria, new THREE.MeshStandardMaterial({ color: 0xffaa66, emissive: 0x442200 }));
@@ -159,7 +182,7 @@ function criarLuzesFarois() {
     
     atualizarPosicoesLuzes();
     
-    console.log('✅ Luzes e esferas visíveis criadas');
+    console.log('✅ SpotLights criados - Faróis apontam para frente/trás');
 }
 
 function atualizarPosicoesLuzes() {
@@ -203,20 +226,19 @@ function ajustarFarol(tipo, eixo, valor) {
     posicoesFarois[tipo][eixo] = parseFloat(valor);
     atualizarPosicoesLuzes();
     
-    // Se os faróis estiverem ligados, atualiza a intensidade para ver o efeito
     if (faroisLigados) {
         ligarFarois();
     }
 }
 
 function ligarFarois() {
-    if (farolFrontalEsquerdo) farolFrontalEsquerdo.intensity = 1.0;
-    if (farolFrontalDireito) farolFrontalDireito.intensity = 1.0;
-    if (farolTraseiroEsquerdo) farolTraseiroEsquerdo.intensity = 0.8;
-    if (farolTraseiroDireito) farolTraseiroDireito.intensity = 0.8;
+    if (farolFrontalEsquerdo) farolFrontalEsquerdo.intensity = 1.5;
+    if (farolFrontalDireito) farolFrontalDireito.intensity = 1.5;
+    if (farolTraseiroEsquerdo) farolTraseiroEsquerdo.intensity = 1.0;
+    if (farolTraseiroDireito) farolTraseiroDireito.intensity = 1.0;
     faroisLigados = true;
     document.getElementById('btnFarol').textContent = '🔆 DESLIGAR FARÓIS';
-    console.log('Faróis ligados');
+    console.log('Faróis ligados - iluminando para frente/trás');
 }
 
 function desligarFarois() {
@@ -242,20 +264,18 @@ function salvarPosicoes() {
     localStorage.setItem('posicoes_farois', posicoesString);
     mostrarToast('✅ Posições dos faróis salvas!', 'success');
     console.log('Posições salvas:', posicoesString);
-    
-    // Mostrar código para copiar
-    alert(`Posições salvas! Copie este código para usar no futuro:\n\n${posicoesString}`);
+    alert(`Posições salvas!\nFrontais: (${posicoesFarois.frontal_esquerdo.x}, ${posicoesFarois.frontal_esquerdo.y}, ${posicoesFarois.frontal_esquerdo.z})\nTraseiros: (${posicoesFarois.traseiro_esquerdo.x}, ${posicoesFarois.traseiro_esquerdo.y}, ${posicoesFarois.traseiro_esquerdo.z})`);
 }
 
 function resetarPosicoes() {
     posicoesFarois = {
-        frontal_esquerdo: { x: -0.6, y: 0.3, z: 1.4 },
-        frontal_direito: { x: 0.6, y: 0.3, z: 1.4 },
-        traseiro_esquerdo: { x: -0.6, y: 0.3, z: -1.3 },
-        traseiro_direito: { x: 0.6, y: 0.3, z: -1.3 }
+        frontal_esquerdo: { x: -1.00, y: 0.15, z: 3.90 },
+        frontal_direito: { x: 1.00, y: 0.15, z: 3.90 },
+        traseiro_esquerdo: { x: -0.95, y: 0.25, z: -4.25 },
+        traseiro_direito: { x: 0.95, y: 0.25, z: -4.25 }
     };
     atualizarPosicoesLuzes();
-    mostrarToast('🔄 Posições resetadas para o padrão', 'info');
+    mostrarToast('🔄 Posições resetadas', 'info');
 }
 
 // ==================== CARREGAR MODELO ====================
@@ -278,7 +298,7 @@ function carregarModelo() {
             const scale = 1.5 / maxDim;
             
             carModel.scale.set(scale, scale, scale);
-            carModel.position.set(-center.x * scale, -center.y * scale, -center.z * scale);
+            carModel.position.set(-center.x * scale, -center.y * scale + 0.05, -center.z * scale);
             
             carModel.traverse((child) => {
                 if (child.isMesh) {
@@ -303,7 +323,7 @@ function carregarModelo() {
             criarLuzesFarois();
             
             loadingDiv.classList.add('hidden');
-            mostrarToast('✅ Carro carregado! Ajuste os faróis com os controles', 'success');
+            mostrarToast('✅ Carro carregado! Ajuste os faróis', 'success');
         },
         (progress) => {
             if (progress.total) {
@@ -391,6 +411,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
     
-    console.log('🚀 Sistema de ajuste de faróis inicializado!');
-    console.log('💡 Use os sliders para mover as esferas até os faróis do carro');
+    console.log('🚀 Sistema de faróis com SpotLight inicializado!');
+    console.log('💡 Faróis dianteiros apontam para FRENTE | Faróis traseiros apontam para TRÁS');
 });
