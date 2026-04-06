@@ -5,281 +5,265 @@
 }
 
 body {
-    overflow: hidden;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-#application-canvas {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 1;
-}
-
-.ui-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 10;
-    pointer-events: none;
-}
-
-.screen {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.85);
-    backdrop-filter: blur(12px);
-    display: none;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    min-height: 100vh;
+    display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 100;
-    pointer-events: auto;
+    padding: 20px;
 }
 
-.screen.active {
-    display: flex;
-}
-
-.card {
-    background: rgba(30, 30, 40, 0.95);
-    border-radius: 32px;
-    padding: 35px;
-    max-width: 600px;
-    width: 90%;
-    text-align: center;
-    color: white;
-    box-shadow: 0 25px 45px rgba(0, 0, 0, 0.5);
-    border: 1px solid rgba(255, 107, 53, 0.3);
-    animation: fadeUp 0.3s ease;
-}
-
-@keyframes fadeUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-h1, h2, h3 {
-    color: #ff6b35;
-    margin-bottom: 15px;
-}
-
-input {
+.container {
+    max-width: 900px;
     width: 100%;
-    padding: 14px;
-    margin: 15px 0;
-    border-radius: 40px;
-    border: none;
-    background: #2a2a35;
-    color: white;
-    font-size: 1.1em;
+}
+
+.title {
     text-align: center;
-    outline: none;
+    margin-bottom: 40px;
 }
 
-input:focus {
-    border: 1px solid #ff6b35;
+.title h1 {
+    font-size: 2.5em;
+    color: #ff6b35;
+    text-shadow: 0 0 10px rgba(255, 107, 53, 0.5);
+    letter-spacing: 2px;
 }
 
-button {
-    background: #ff6b35;
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 40px;
-    font-weight: bold;
-    cursor: pointer;
-    font-size: 1em;
-    transition: 0.2s;
-    pointer-events: auto;
+.title p {
+    color: #aaa;
+    font-size: 1.1em;
+    margin-top: 10px;
 }
 
-button:hover {
-    transform: scale(1.02);
-    background: #ff8555;
-}
-
-.btn-exit {
-    background: #dc3545;
-}
-
-.btn-primary {
-    background: #ff6b35;
-}
-
-/* Player Stats */
-.player-stats {
+.cars-container {
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
     gap: 30px;
-    margin: 15px 0;
-    padding: 12px;
-    background: #2a2a35;
-    border-radius: 20px;
+    margin-bottom: 40px;
 }
 
-.player-stats span {
-    font-size: 1.1em;
-}
-
-/* Seletor de Carros */
-.car-selector {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 20px;
-    margin: 20px 0;
-}
-
-.car-nav {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    font-size: 24px;
-    background: #ff6b35;
-}
-
-.car-preview {
-    background: #1e1e2a;
-    border-radius: 20px;
-    padding: 20px;
-    min-width: 280px;
+.car-card {
+    background: rgba(30, 30, 40, 0.95);
+    border-radius: 24px;
+    padding: 25px;
+    width: 300px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
     text-align: center;
+    backdrop-filter: blur(10px);
+}
+
+.car-card:hover {
+    transform: translateY(-10px);
+    background: rgba(40, 40, 55, 0.95);
+}
+
+.car-card.selecionado {
+    border-color: #ff6b35;
+    box-shadow: 0 0 30px rgba(255, 107, 53, 0.3);
+    background: rgba(50, 50, 70, 0.95);
 }
 
 .car-name {
-    font-size: 1.4em;
-    font-weight: bold;
-    color: #ffaa66;
-    margin-bottom: 10px;
-}
-
-.car-stats {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    font-size: 0.9em;
-    color: #aaa;
-}
-
-/* Selecionador de Distância */
-.distance-selector {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 20px;
+    color: white;
+    font-size: 1.5em;
     margin: 15px 0;
 }
 
-.distance-selector button {
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    font-size: 20px;
-    padding: 0;
+/* Visual do Carro 1 - Esportivo */
+.carro1-visual {
+    position: relative;
+    width: 100%;
+    height: 120px;
+    margin-bottom: 20px;
 }
 
-.distance-selector span {
-    font-size: 28px;
-    font-weight: bold;
-    min-width: 100px;
-    background: #2a2a35;
-    padding: 10px;
-    border-radius: 20px;
-}
-
-/* HUD da Corrida */
-.race-hud {
-    position: fixed;
-    top: 20px;
-    left: 20px;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(8px);
-    border-radius: 16px;
-    padding: 12px 20px;
-    color: white;
-    font-family: monospace;
-    z-index: 20;
-    pointer-events: none;
-    border-left: 4px solid #ff6b35;
-}
-
-.hud-item {
-    margin: 5px 0;
-    font-size: 14px;
-    font-weight: bold;
-}
-
-.race-controls {
-    position: fixed;
+.car-body.red {
+    position: absolute;
     bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.8);
-    border-radius: 50px;
-    padding: 10px 25px;
-    display: flex;
-    gap: 25px;
-    z-index: 20;
-    pointer-events: auto;
+    left: 30px;
+    width: 160px;
+    height: 45px;
+    background: #ff3333;
+    border-radius: 25px;
+    box-shadow: 0 5px 0 #aa2222;
 }
 
-.control-hint {
+.car-roof.black {
+    position: absolute;
+    bottom: 55px;
+    left: 70px;
+    width: 80px;
+    height: 30px;
+    background: #1a1a1a;
+    border-radius: 15px 15px 5px 5px;
+}
+
+.wheel {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    background: #1a1a1a;
+    border-radius: 50%;
+    bottom: 10px;
+}
+
+.wheel::after {
+    content: '';
+    position: absolute;
+    width: 15px;
+    height: 15px;
+    background: #555;
+    border-radius: 50%;
+    top: 7.5px;
+    left: 7.5px;
+}
+
+.wheel1 { left: 35px; }
+.wheel2 { left: 75px; }
+.wheel3 { left: 115px; }
+.wheel4 { left: 155px; }
+
+/* Visual do Carro 2 - Caminhonete */
+.carro2-visual {
+    position: relative;
+    width: 100%;
+    height: 120px;
+    margin-bottom: 20px;
+}
+
+.car-body.blue {
+    position: absolute;
+    bottom: 20px;
+    left: 30px;
+    width: 160px;
+    height: 50px;
+    background: #3366ff;
+    border-radius: 20px;
+    box-shadow: 0 5px 0 #2244bb;
+}
+
+.car-bed.gray {
+    position: absolute;
+    bottom: 60px;
+    left: 100px;
+    width: 90px;
+    height: 25px;
+    background: #555;
+    border-radius: 8px;
+}
+
+.car-cabin.lightblue {
+    position: absolute;
+    bottom: 55px;
+    left: 40px;
+    width: 70px;
+    height: 35px;
+    background: #6699ff;
+    border-radius: 10px 10px 5px 5px;
+}
+
+/* Stats */
+.car-stats {
+    margin: 15px 0;
+    text-align: left;
+}
+
+.stat {
+    color: #ccc;
+    font-size: 0.85em;
+    margin: 8px 0 3px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.stat-value {
+    color: #ffaa66;
+    font-weight: bold;
+}
+
+.stat-bar {
+    background: #2a2a35;
+    height: 6px;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ff6b35, #ffaa66);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+.car-price {
+    margin-top: 15px;
+    padding: 8px;
+    background: #2a2a35;
+    border-radius: 20px;
+    font-size: 0.85em;
+    color: #ffaa66;
+}
+
+.action-buttons {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.btn-confirm {
+    background: linear-gradient(135deg, #ff6b35, #ff4433);
     color: white;
-    font-size: 13px;
-    display: flex;
-    gap: 20px;
+    border: none;
+    padding: 15px 40px;
+    font-size: 1.2em;
+    font-weight: bold;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(255, 107, 53, 0.3);
 }
 
-.room-section {
+.btn-confirm:hover:not(:disabled) {
+    transform: scale(1.05);
+    box-shadow: 0 8px 25px rgba(255, 107, 53, 0.5);
+}
+
+.btn-confirm:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.selected-display {
+    text-align: center;
     margin-top: 20px;
-    padding-top: 20px;
-    border-top: 1px solid #2a2a35;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 15px;
+    color: white;
+    font-size: 1.1em;
 }
 
-/* Responsividade */
-@media (max-width: 768px) {
-    .card {
-        padding: 25px;
+.selected-display strong {
+    color: #ff6b35;
+}
+
+/* Responsivo */
+@media (max-width: 700px) {
+    .cars-container {
+        gap: 20px;
     }
     
-    .car-selector {
-        gap: 10px;
+    .car-card {
+        width: 280px;
+        padding: 20px;
     }
     
-    .car-nav {
-        width: 40px;
-        height: 40px;
-        font-size: 20px;
-    }
-    
-    .car-preview {
-        min-width: 220px;
-        padding: 15px;
-    }
-    
-    .control-hint {
-        font-size: 10px;
-        gap: 10px;
-    }
-    
-    .player-stats {
-        gap: 15px;
-    }
-    
-    .player-stats span {
-        font-size: 0.9em;
+    .title h1 {
+        font-size: 1.8em;
     }
 }
