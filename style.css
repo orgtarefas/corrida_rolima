@@ -198,3 +198,103 @@ body {
         font-size: 0.7em;
     }
 }
+
+/* Painel de controle dos faróis */
+.farol-panel {
+    position: fixed;
+    right: 20px;
+    top: 20px;
+    width: 280px;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 15px;
+    z-index: 20;
+    color: white;
+    font-size: 12px;
+    border-right: 3px solid #ff6b35;
+    pointer-events: auto;
+}
+
+.farol-panel h3 {
+    color: #ff6b35;
+    margin-bottom: 10px;
+    font-size: 14px;
+    text-align: center;
+}
+
+.farol-group {
+    margin-bottom: 15px;
+    padding: 8px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 8px;
+}
+
+.farol-group h4 {
+    font-size: 12px;
+    margin-bottom: 8px;
+}
+
+.farol-group .coords {
+    font-family: monospace;
+    font-size: 10px;
+    color: #ffaa66;
+    margin-bottom: 8px;
+}
+
+.slider-row {
+    display: flex;
+    gap: 8px;
+    margin: 5px 0;
+}
+
+.slider-row label {
+    width: 20px;
+    font-weight: bold;
+    color: #ffaa66;
+}
+
+.slider-row input {
+    flex: 1;
+    cursor: pointer;
+}
+
+.farol-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.farol-buttons button {
+    flex: 1;
+    padding: 8px;
+    font-size: 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+#btnFarol {
+    background: #ff6b35;
+    color: white;
+}
+
+#btnSalvar {
+    background: #4caf50;
+    color: white;
+}
+
+#btnResetar {
+    background: #f44336;
+    color: white;
+}
+
+@media (max-width: 700px) {
+    .farol-panel {
+        width: 260px;
+        right: 10px;
+        top: 10px;
+        padding: 10px;
+    }
+}
