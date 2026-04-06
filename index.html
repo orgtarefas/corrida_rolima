@@ -2,45 +2,52 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Rolimã Racer - Selecione seu Carro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rolimã Racer - Garagem com Firebase</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="canvas-container"></div>
 
-    <!-- UI agora no CANTO INFERIOR ESQUERDO -->
-    <div class="ui-panel">
-        <div class="car-info">
-            <h2 id="carName">🔥 Carregando...</h2>
-            
-            <div class="stats">
-                <div class="stat-item">
-                    <span>⚡ Velocidade</span>
-                    <span id="velocidade">--</span>
-                    <div class="stat-bar"><div class="bar-fill" id="velBar"></div></div>
-                </div>
-                <div class="stat-item">
-                    <span>🎮 Controle</span>
-                    <span id="controle">--</span>
-                    <div class="stat-bar"><div class="bar-fill" id="ctrlBar"></div></div>
-                </div>
-                <div class="stat-item">
-                    <span>💪 Durabilidade</span>
-                    <span id="durabilidade">--</span>
-                    <div class="stat-bar"><div class="bar-fill" id="durBar"></div></div>
-                </div>
-            </div>
-
-            <div class="player-stats">
-                <span>⭐ <span id="playerPoints">0</span> pts</span>
-                <span>🏆 <span id="playerWins">0</span> vitórias</span>
-            </div>
-
-            <button id="selectCarBtn" class="btn-select">
-                ✅ SELECIONAR CARRO
-            </button>
+    <!-- Painel de Cores Principal -->
+    <div class="painel painel-cores">
+        <h3>🎨 COR PRINCIPAL</h3>
+        <div class="grid-cores">
+            <button class="cor-btn" id="btnVermelho" style="background: #ff3333;"></button>
+            <button class="cor-btn" id="btnAzul" style="background: #3366ff;"></button>
+            <button class="cor-btn" id="btnVerde" style="background: #33ff66;"></button>
+            <button class="cor-btn" id="btnAmarelo" style="background: #ffcc00;"></button>
+            <button class="cor-btn" id="btnPreto" style="background: #222;"></button>
+            <button class="cor-btn" id="btnBranco" style="background: #eee;"></button>
+            <button class="cor-btn" id="btnPrata" style="background: #ccc;"></button>
+            <button class="cor-btn" id="btnLaranja" style="background: #ff6600;"></button>
+            <button class="cor-btn" id="btnRoxo" style="background: #9933ff;"></button>
+            <button class="cor-btn" id="btnRosa" style="background: #ff66cc;"></button>
         </div>
+    </div>
+
+    <!-- Painel de Cores das Listras -->
+    <div class="painel painel-listras">
+        <h3>🎨 COR DAS LISTRAS</h3>
+        <div class="grid-cores">
+            <button class="cor-btn pequeno" id="btnListraBranca" style="background: #ffffff;"></button>
+            <button class="cor-btn pequeno" id="btnListraPreta" style="background: #000000;"></button>
+            <button class="cor-btn pequeno" id="btnListraAmarela" style="background: #ffcc00;"></button>
+            <button class="cor-btn pequeno" id="btnListraVermelha" style="background: #ff3333;"></button>
+            <button class="cor-btn pequeno" id="btnListraAzul" style="background: #3366ff;"></button>
+            <button class="cor-btn pequeno" id="btnListraDourada" style="background: #ffaa33;"></button>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <h3>🏁 ESTILO DAS LISTRAS</h3>
+        <div class="botoes-linha">
+            <button id="btnListraDupla" class="btn-estilo ativo">Dupla</button>
+            <button id="btnListraSimples" class="btn-estilo">Simples</button>
+            <button id="btnListraRacing" class="btn-estilo">Racing</button>
+        </div>
+        
+        <button id="btnToggleListras" class="btn-toggle">🔘 Remover Listras</button>
     </div>
 
     <div id="loading" class="loading">
