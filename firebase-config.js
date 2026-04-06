@@ -1,6 +1,6 @@
 // firebase-config.js
 import { initializeApp } from "firebase/app";
-import { getDatabase } from "firebase/database";
+import { getDatabase, ref, set, get, update, onValue } from "firebase/database";
 
 // Sua configuração do Firebase
 const firebaseConfig = {
@@ -13,10 +13,10 @@ const firebaseConfig = {
   appId: "1:470546136795:web:455dfc40dea0e738b2d6fe"
 };
 
-// Initialize Firebase
+// Inicializar Firebase
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 
 console.log('✅ Firebase Realtime Database conectado');
 
-export { database };
+export { database, ref, set, get, update, onValue };
