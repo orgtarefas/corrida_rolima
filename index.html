@@ -2,85 +2,40 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rolimã Racer - Carros 3D</title>
-    <style>
-        body {
-            margin: 0;
-            overflow: hidden;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        #info {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: rgba(0,0,0,0.7);
-            color: white;
-            padding: 12px 20px;
-            border-radius: 8px;
-            z-index: 100;
-            font-size: 14px;
-            pointer-events: none;
-        }
-        .controls-hint {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            background: rgba(0,0,0,0.5);
-            color: white;
-            padding: 8px 15px;
-            border-radius: 8px;
-            font-size: 12px;
-            z-index: 100;
-            pointer-events: none;
-        }
-        .car-selector {
-            position: absolute;
-            bottom: 80px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 20px;
-            z-index: 100;
-            background: rgba(0,0,0,0.8);
-            padding: 15px 25px;
-            border-radius: 50px;
-            backdrop-filter: blur(10px);
-        }
-        .car-btn {
-            background: #ff6b35;
-            border: none;
-            padding: 10px 25px;
-            border-radius: 30px;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        .car-btn:hover {
-            transform: scale(1.05);
-            background: #ff8855;
-        }
-        .car-btn.active {
-            background: #4caf50;
-            box-shadow: 0 0 15px #4caf50;
-        }
-        .car-btn.locked {
-            background: #555;
-            cursor: not-allowed;
-            opacity: 0.6;
-        }
-        .car-btn.locked:hover {
-            transform: none;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Rolimã Racer - Selecione seu Carro</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="info">
-        🚗 Conectando ao Firebase...
+    <div id="canvas-container"></div>
+
+    <div class="ui-overlay">
+        <div class="car-card">
+            <h1 class="car-name" id="carName">🔥 Carregando...</h1>
+            
+            <div class="car-stats" id="carStats">
+                <div class="stat">⚡ Velocidade: <span id="velocidade">--</span>%</div>
+                <div class="stat-bar"><div class="bar-fill" id="velBar" style="width: 0%"></div></div>
+                <div class="stat">🎮 Controle: <span id="controle">--</span>%</div>
+                <div class="stat-bar"><div class="bar-fill" id="ctrlBar" style="width: 0%"></div></div>
+                <div class="stat">💪 Durabilidade: <span id="durabilidade">--</span>%</div>
+                <div class="stat-bar"><div class="bar-fill" id="durBar" style="width: 0%"></div></div>
+            </div>
+
+            <div class="player-info">
+                <span>⭐ Pontos: <strong id="playerPoints">0</strong></span>
+                <span>🏆 Vitórias: <strong id="playerWins">0</strong></span>
+            </div>
+
+            <button id="selectCarBtn" class="btn-select">
+                ✅ SELECIONAR CARRO
+            </button>
+        </div>
     </div>
-    <div class="controls-hint">
-        🖱️ Arraste para girar | 🔍 Scroll para zoom | 🔄 Rotação automática
+
+    <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <p>Carregando modelo 3D...</p>
     </div>
 
     <script type="importmap">
