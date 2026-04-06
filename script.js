@@ -2,60 +2,51 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 import { MTLLoader } from 'three/addons/loaders/MTLLoader.js';
-import { database } from './firebase-config.js';
-import { ref, get, set, update, onValue } from 'firebase/database';
+import { database, ref, set, get, update, onValue } from './firebase-config.js';
 
-// ==================== CONFIGURAÇÃO ====================
-const modeloPath = './models/car1/car1.obj';
-const mtlPath = './models/car1/car1.mtl';
-
-// Variáveis globais
-let currentCar = null;
-let currentScene = null;
-let pontosJogador = 0;
-let playerId = 'jogador_teste'; // Depois você pode implementar login
-
-// Configuração dos carros disponíveis
-const carrosDisponiveis = {
-    carro1: {
-        id: 'carro1',
-        nome: '🔥 Fúria Vermelha',
-        caminho: './models/car1/car1.obj',
-        mtl: './models/car1/car1.mtl',
-        preco: 0,
-        stats: { velocidade: 85, controle: 70, durabilidade: 65, aceleracao: 90 }
-    },
-    carro2: {
-        id: 'carro2',
-        nome: '💪 Touro Azul',
-        caminho: './models/car2/car2.obj', // Você vai adicionar depois
-        mtl: './models/car2/car2.mtl',
-        preco: 500,
-        stats: { velocidade: 60, controle: 50, durabilidade: 95, aceleracao: 45 }
+// ==================== CONFIGURAÇÃO DO CARRO ====================
+const carro = {
+    id: 'carro1',
+    nome: '🔥 Fúria Vermelha',
+    caminhoOBJ: './models/car1/car1.obj',
+    caminhoMTL: './models/car1/car1.mtl',
+    stats: {
+        velocidade: 85,
+        controle: 70,
+        durabilidade: 65,
+        aceleracao: 90
     }
 };
 
+// Variáveis globais
+let scene, camera, renderer, controls;
+let currentCar = null;
+let playerId = 'jogador_default';
+let playerData = {
+    pontos: 100,
+    vitorias: 0,
+    carroSelecionado: 'carro1'
+};
+
 // ==================== CENA 3D ====================
-function initScene() {
-    // Cena
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x111122);
-    scene.fog = new THREE.Fog(0x111122, 10, 30);
+function init3D() {
+    const container = document.getElementById('canvas-container');
     
-    // Câmera
-    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0a0a1a);
+    scene.fog = new THREE.Fog(0x0a0a1a, 10, 30);
+    
+    camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.set(4, 3, 5);
     camera.lookAt(0, 0.5, 0);
     
-    // Renderizador
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.shadowMap.enabled = true;
     renderer.setPixelRatio(window.devicePixelRatio);
-    document.body.appendChild(renderer.domElement);
+    container.appendChild(renderer.domElement);
     
-    // Controles
-    const controls = new OrbitControls(camera, renderer.domElement);
+    controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
     controls.autoRotate = true;
@@ -95,15 +86,16 @@ function initScene() {
     backLight.position.set(0, 2, -5);
     scene.add(backLight);
     
-    const topLight = new THREE.PointLight(0xffffff, 0.3);
-    topLight.position.set(0, 5, 0);
-    scene.add(topLight);
+    const rimLight = new THREE.PointLight(0xff6633, 0.5);
+    rimLight.position.set(2, 1, -3);
+    scene.add(rimLight);
     
     // Chão com grade
     const gridHelper = new THREE.GridHelper(10, 20, 0x888888, 0x444444);
     gridHelper.position.y = -0.5;
     scene.add(gridHelper);
     
+    // Plano de sombra
     const shadowPlane = new THREE.Mesh(
         new THREE.PlaneGeometry(8, 8),
         new THREE.ShadowMaterial({ opacity: 0.3, color: 0x000000, transparent: true, side: THREE.DoubleSide })
@@ -113,35 +105,33 @@ function initScene() {
     shadowPlane.receiveShadow = true;
     scene.add(shadowPlane);
     
-    // Animação
-    function animate() {
-        requestAnimationFrame(animate);
-        controls.update();
-        renderer.render(scene, camera);
-    }
     animate();
-    
-    // Redimensionamento
-    window.addEventListener('resize', () => {
+}
+
+function animate() {
+    requestAnimationFrame(animate);
+    if (controls) controls.update();
+    if (renderer && scene && camera) renderer.render(scene, camera);
+}
+
+window.addEventListener('resize', () => {
+    if (camera) {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
-    });
-    
-    return { scene, camera, controls, renderer };
-}
+    }
+});
 
 // ==================== CARREGAR MODELO 3D ====================
-function carregarModelo(caminhoOBJ, caminhoMTL = null, corPadrao = 0xcc3333) {
+function carregarModelo() {
+    const loadingDiv = document.getElementById('loading');
+    loadingDiv.classList.remove('hidden');
+    
     if (currentCar) {
-        currentScene.remove(currentCar);
+        scene.remove(currentCar);
     }
     
-    const infoDiv = document.getElementById('info');
-    infoDiv.innerHTML = '🚗 Carregando modelo 3D...';
-    
     const finalizarModelo = (object) => {
-        // Calcular bounding box para ajuste automático
         const box = new THREE.Box3().setFromObject(object);
         const size = box.getSize(new THREE.Vector3());
         const center = box.getCenter(new THREE.Vector3());
@@ -155,16 +145,13 @@ function carregarModelo(caminhoOBJ, caminhoMTL = null, corPadrao = 0xcc3333) {
             -center.z * scale
         );
         
-        // Habilitar sombras e ajustar materiais
         object.traverse((child) => {
             if (child.isMesh) {
                 child.castShadow = true;
                 child.receiveShadow = true;
-                
-                // Se não tiver material, cria um material padrão
                 if (!child.material) {
                     child.material = new THREE.MeshStandardMaterial({
-                        color: corPadrao,
+                        color: 0xcc3333,
                         roughness: 0.4,
                         metalness: 0.6
                     });
@@ -172,226 +159,118 @@ function carregarModelo(caminhoOBJ, caminhoMTL = null, corPadrao = 0xcc3333) {
             }
         });
         
-        currentScene.add(object);
+        scene.add(object);
         currentCar = object;
         
-        infoDiv.innerHTML = `✅ Modelo carregado!<br>⭐ Pontos: ${pontosJogador}`;
-    };
-    
-    const progressoModelo = (progress) => {
-        if (progress.total) {
-            const percent = (progress.loaded / progress.total * 100).toFixed(0);
-            infoDiv.innerHTML = `🚗 Carregando: ${percent}%`;
-        }
+        loadingDiv.classList.add('hidden');
+        console.log('✅ Modelo carregado com sucesso!');
     };
     
     const erroModelo = (error) => {
-        console.error('Erro ao carregar modelo:', error);
-        infoDiv.innerHTML = '❌ Erro ao carregar modelo! Verifique o console (F12)';
+        console.error('Erro:', error);
+        loadingDiv.classList.add('hidden');
+        mostrarMensagem('❌ Erro ao carregar modelo! Verifique o console', 'error');
     };
     
-    // Tentar carregar com MTL primeiro
-    if (caminhoMTL) {
-        fetch(caminhoMTL, { method: 'HEAD' })
-            .then(response => {
-                if (response.ok) {
-                    const mtlLoader = new MTLLoader();
-                    mtlLoader.setPath(caminhoMTL.substring(0, caminhoMTL.lastIndexOf('/') + 1));
-                    mtlLoader.load(caminhoMTL, (materials) => {
-                        materials.preload();
-                        const objLoader = new OBJLoader();
-                        objLoader.setMaterials(materials);
-                        objLoader.load(caminhoOBJ, finalizarModelo, progressoModelo, erroModelo);
-                    }, undefined, () => {
-                        carregarSemMTL(caminhoOBJ, corPadrao);
-                    });
-                } else {
-                    carregarSemMTL(caminhoOBJ, corPadrao);
-                }
-            })
-            .catch(() => carregarSemMTL(caminhoOBJ, corPadrao));
-    } else {
-        carregarSemMTL(caminhoOBJ, corPadrao);
-    }
+    // Verificar se existe MTL
+    fetch(carro.caminhoMTL, { method: 'HEAD' })
+        .then(response => {
+            if (response.ok) {
+                const mtlLoader = new MTLLoader();
+                mtlLoader.setPath('./models/car1/');
+                mtlLoader.load(carro.caminhoMTL, (materials) => {
+                    materials.preload();
+                    const objLoader = new OBJLoader();
+                    objLoader.setMaterials(materials);
+                    objLoader.load(carro.caminhoOBJ, finalizarModelo, null, erroModelo);
+                }, undefined, () => {
+                    carregarSemMTL();
+                });
+            } else {
+                carregarSemMTL();
+            }
+        })
+        .catch(() => carregarSemMTL());
     
-    function carregarSemMTL(objPath, cor) {
+    function carregarSemMTL() {
         const objLoader = new OBJLoader();
-        objLoader.load(objPath, finalizarModelo, progressoModelo, erroModelo);
+        objLoader.load(carro.caminhoOBJ, finalizarModelo, null, erroModelo);
     }
 }
 
 // ==================== FIREBASE FUNCTIONS ====================
 
-// Carregar dados do jogador do Firebase
-function carregarDadosJogador() {
+function carregarDadosFirebase() {
     const playerRef = ref(database, `jogadores/${playerId}`);
     
     onValue(playerRef, (snapshot) => {
         const data = snapshot.val();
         
         if (data) {
-            pontosJogador = data.pontos || 0;
-            
-            // Atualizar botões baseado nos carros desbloqueados
-            const desbloqueados = data.carrosDesbloqueados || ['carro1'];
-            Object.keys(carrosDisponiveis).forEach(carId => {
-                const btn = document.querySelector(`.car-btn[data-car="${carId}"]`);
-                if (btn) {
-                    const isDesbloqueado = desbloqueados.includes(carId);
-                    if (isDesbloqueado) {
-                        btn.classList.remove('locked');
-                        btn.disabled = false;
-                    } else {
-                        btn.classList.add('locked');
-                        btn.disabled = true;
-                        btn.title = `Precisa de ${carrosDisponiveis[carId].preco} pontos`;
-                    }
-                }
-            });
-            
-            // Carregar carro selecionado
-            const carroSelecionado = data.carroSelecionado || 'carro1';
-            const carro = carrosDisponiveis[carroSelecionado];
-            if (carro && desbloqueados.includes(carroSelecionado)) {
-                carregarModelo(carro.caminho, carro.mtl);
-                destacarBotao(carroSelecionado);
-            } else {
-                carregarModelo(carrosDisponiveis.carro1.caminho, carrosDisponiveis.carro1.mtl);
-                destacarBotao('carro1');
-            }
+            playerData = {
+                pontos: data.pontos || 100,
+                vitorias: data.vitorias || 0,
+                carroSelecionado: data.carroSelecionado || 'carro1'
+            };
         } else {
             // Criar novo jogador
-            const novoJogador = {
+            set(playerRef, {
                 pontos: 100,
-                carrosDesbloqueados: ['carro1'],
-                carroSelecionado: 'carro1',
-                vitorias: 0
-            };
-            set(playerRef, novoJogador);
-            pontosJogador = 100;
-            carregarModelo(carrosDisponiveis.carro1.caminho, carrosDisponiveis.carro1.mtl);
+                vitorias: 0,
+                carroSelecionado: 'carro1'
+            });
+            playerData = { pontos: 100, vitorias: 0, carroSelecionado: 'carro1' };
         }
         
-        atualizarInfoTela();
+        atualizarUI();
     });
 }
 
-// Salvar pontos no Firebase
-function salvarPontos(novosPontos) {
-    const playerRef = ref(database, `jogadores/${playerId}/pontos`);
-    set(playerRef, novosPontos);
-    pontosJogador = novosPontos;
-    atualizarInfoTela();
+function atualizarUI() {
+    document.getElementById('carName').textContent = carro.nome;
+    document.getElementById('velocidade').textContent = carro.stats.velocidade;
+    document.getElementById('controle').textContent = carro.stats.controle;
+    document.getElementById('durabilidade').textContent = carro.stats.durabilidade;
+    
+    document.getElementById('velBar').style.width = `${carro.stats.velocidade}%`;
+    document.getElementById('ctrlBar').style.width = `${carro.stats.controle}%`;
+    document.getElementById('durBar').style.width = `${carro.stats.durabilidade}%`;
+    
+    document.getElementById('playerPoints').textContent = playerData.pontos;
+    document.getElementById('playerWins').textContent = playerData.vitorias;
 }
 
-// Desbloquear carro
-function desbloquearCarro(carroId) {
-    const carro = carrosDisponiveis[carroId];
-    if (!carro) return false;
-    
-    if (pontosJogador >= carro.preco) {
-        const novosPontos = pontosJogador - carro.preco;
-        
-        // Atualizar pontos e desbloqueios no Firebase
-        const playerRef = ref(database, `jogadores/${playerId}`);
-        
-        get(playerRef).then((snapshot) => {
-            const data = snapshot.val();
-            const desbloqueados = data.carrosDesbloqueados || ['carro1'];
-            
-            if (!desbloqueados.includes(carroId)) {
-                desbloqueados.push(carroId);
-                update(playerRef, {
-                    pontos: novosPontos,
-                    carrosDesbloqueados: desbloqueados
-                });
-                
-                pontosJogador = novosPontos;
-                alert(`🎉 ${carro.nome} desbloqueado!`);
-                
-                // Habilitar botão
-                const btn = document.querySelector(`.car-btn[data-car="${carroId}"]`);
-                if (btn) {
-                    btn.classList.remove('locked');
-                    btn.disabled = false;
-                }
-                
-                return true;
-            }
-        });
-        return true;
-    } else {
-        alert(`❌ Pontos insuficientes! Faltam ${carro.preco - pontosJogador} pontos`);
-        return false;
-    }
-}
-
-// Selecionar carro
-function selecionarCarro(carroId) {
-    const carro = carrosDisponiveis[carroId];
-    if (!carro) return;
-    
-    // Verificar se está desbloqueado
+function selecionarCarro() {
     const playerRef = ref(database, `jogadores/${playerId}`);
-    get(playerRef).then((snapshot) => {
-        const data = snapshot.val();
-        const desbloqueados = data.carrosDesbloqueados || ['carro1'];
-        
-        if (desbloqueados.includes(carroId)) {
-            // Salvar seleção no Firebase
-            update(playerRef, { carroSelecionado: carroId });
-            carregarModelo(carro.caminho, carro.mtl);
-            destacarBotao(carroId);
-        } else {
-            // Tentar desbloquear
-            desbloquearCarro(carroId);
-        }
-    });
-}
-
-function destacarBotao(carroId) {
-    document.querySelectorAll('.car-btn').forEach(btn => {
-        btn.classList.remove('active');
-        if (btn.dataset.car === carroId) {
-            btn.classList.add('active');
-        }
-    });
-}
-
-function atualizarInfoTela() {
-    const infoDiv = document.getElementById('info');
-    infoDiv.innerHTML = `🚗 Rolimã Racer<br>⭐ Pontos: ${pontosJogador}`;
-}
-
-// ==================== CRIAR BOTÕES DE SELEÇÃO ====================
-function criarBotoesSelecao() {
-    const selectorDiv = document.createElement('div');
-    selectorDiv.className = 'car-selector';
+    update(playerRef, { carroSelecionado: 'carro1' });
     
-    Object.keys(carrosDisponiveis).forEach(carroId => {
-        const carro = carrosDisponiveis[carroId];
-        const btn = document.createElement('button');
-        btn.className = 'car-btn';
-        btn.dataset.car = carroId;
-        btn.textContent = `${carro.nome} ${carro.preco > 0 ? `(${carro.preco} pts)` : ''}`;
-        btn.onclick = () => selecionarCarro(carroId);
-        selectorDiv.appendChild(btn);
-    });
+    mostrarMensagem(`✅ ${carro.nome} selecionado! Pronto para a corrida!`, 'success');
+}
+
+function mostrarMensagem(texto, tipo) {
+    const msg = document.createElement('div');
+    msg.className = 'toast-message';
+    msg.textContent = texto;
+    msg.style.background = tipo === 'success' ? '#4caf50' : '#f44336';
+    msg.style.color = 'white';
+    document.body.appendChild(msg);
     
-    document.body.appendChild(selectorDiv);
+    setTimeout(() => {
+        msg.style.opacity = '0';
+        setTimeout(() => msg.remove(), 300);
+    }, 3000);
 }
 
 // ==================== INICIALIZAÇÃO ====================
 document.addEventListener('DOMContentLoaded', () => {
-    // Inicializar cena 3D
-    const { scene } = initScene();
-    currentScene = scene;
+    init3D();
+    carregarDadosFirebase();
     
-    // Criar botões de seleção
-    criarBotoesSelecao();
+    setTimeout(() => {
+        carregarModelo();
+    }, 500);
     
-    // Carregar dados do Firebase
-    carregarDadosJogador();
+    document.getElementById('selectCarBtn').addEventListener('click', selecionarCarro);
     
-    console.log('🚀 Sistema inicializado com Firebase Realtime Database');
+    console.log('🚀 Sistema inicializado com Firebase!');
 });
