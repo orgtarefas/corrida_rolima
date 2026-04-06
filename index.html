@@ -2,107 +2,211 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Rolimã Racer - Selecione seu Carro</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rolimã Racer - Carro 3D</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        #info {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            z-index: 10;
+            font-size: 14px;
+            pointer-events: none;
+        }
+        
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-size: 12px;
+            z-index: 10;
+            pointer-events: none;
+        }
+        
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 20px 40px;
+            border-radius: 10px;
+            z-index: 20;
+            font-size: 18px;
+        }
+    </style>
 </head>
 <body>
-    <div id="canvas-container"></div>
-
-    <!-- UI no CANTO INFERIOR ESQUERDO -->
-    <div class="ui-panel">
-        <div class="car-info">
-            <h2 id="carName">🔥 Fúria Vermelha</h2>
-            
-            <div class="stats">
-                <div class="stat-item">
-                    <span>⚡ Velocidade</span>
-                    <span id="velocidade">85</span>
-                    <div class="stat-bar"><div class="bar-fill" style="width: 85%"></div></div>
-                </div>
-                <div class="stat-item">
-                    <span>🎮 Controle</span>
-                    <span id="controle">70</span>
-                    <div class="stat-bar"><div class="bar-fill" style="width: 70%"></div></div>
-                </div>
-                <div class="stat-item">
-                    <span>💪 Durabilidade</span>
-                    <span id="durabilidade">65</span>
-                    <div class="stat-bar"><div class="bar-fill" style="width: 65%"></div></div>
-                </div>
-            </div>
-
-            <div class="player-stats">
-                <span>⭐ <span id="playerPoints">100</span> pts</span>
-                <span>🏆 <span id="playerWins">0</span> vitórias</span>
-            </div>
-
-            <button id="selectCarBtn" class="btn-select">
-                ✅ SELECIONAR CARRO
-            </button>
-        </div>
+    <div id="info">
+        🚗 Carro 3D - Arraste para girar | Scroll para zoom
     </div>
-
-    <!-- Painel de controle dos FARÓIS -->
-    <div class="farol-panel">
-        <h3>🔧 AJUSTE DOS FARÓIS</h3>
-        
-        <div class="farol-group">
-            <h4>🔆 Farol Frontal Esquerdo</h4>
-            <div class="coords" id="fe_coords">-1.00, 0.15, 3.90</div>
-            <div class="slider-row"><label>X:</label><input type="range" id="fe_x" min="-3" max="3" step="0.05" value="-1"></div>
-            <div class="slider-row"><label>Y:</label><input type="range" id="fe_y" min="-1" max="2" step="0.05" value="0.15"></div>
-            <div class="slider-row"><label>Z:</label><input type="range" id="fe_z" min="-5" max="6" step="0.05" value="3.9"></div>
-        </div>
-        
-        <div class="farol-group">
-            <h4>🔆 Farol Frontal Direito</h4>
-            <div class="coords" id="fd_coords">1.00, 0.15, 3.90</div>
-            <div class="slider-row"><label>X:</label><input type="range" id="fd_x" min="-3" max="3" step="0.05" value="1"></div>
-            <div class="slider-row"><label>Y:</label><input type="range" id="fd_y" min="-1" max="2" step="0.05" value="0.15"></div>
-            <div class="slider-row"><label>Z:</label><input type="range" id="fd_z" min="-5" max="6" step="0.05" value="3.9"></div>
-        </div>
-        
-        <div class="farol-group">
-            <h4>🔴 Farol Traseiro Esquerdo</h4>
-            <div class="coords" id="te_coords">-0.95, 0.25, -4.25</div>
-            <div class="slider-row"><label>X:</label><input type="range" id="te_x" min="-3" max="3" step="0.05" value="-0.95"></div>
-            <div class="slider-row"><label>Y:</label><input type="range" id="te_y" min="-1" max="2" step="0.05" value="0.25"></div>
-            <div class="slider-row"><label>Z:</label><input type="range" id="te_z" min="-6" max="5" step="0.05" value="-4.25"></div>
-        </div>
-        
-        <div class="farol-group">
-            <h4>🔴 Farol Traseiro Direito</h4>
-            <div class="coords" id="td_coords">0.95, 0.25, -4.25</div>
-            <div class="slider-row"><label>X:</label><input type="range" id="td_x" min="-3" max="3" step="0.05" value="0.95"></div>
-            <div class="slider-row"><label>Y:</label><input type="range" id="td_y" min="-1" max="2" step="0.05" value="0.25"></div>
-            <div class="slider-row"><label>Z:</label><input type="range" id="td_z" min="-6" max="5" step="0.05" value="-4.25"></div>
-        </div>
-        
-        <div class="farol-buttons">
-            <button id="btnFarol">💡 LIGAR FARÓIS</button>
-            <button id="btnSalvarFarois">💾 SALVAR</button>
-        </div>
+    <div class="controls">
+        🖱️ Mouse: Girar visual | 🔍 Scroll: Zoom
     </div>
-
-    <div id="loading" class="loading hidden">
-        <div class="spinner"></div>
-        <p>Carregando modelo 3D...</p>
+    <div id="loading" class="loading">
+        Carregando modelo 3D...
     </div>
-
-    <div id="toast"></div>
 
     <script type="importmap">
         {
             "imports": {
                 "three": "https://unpkg.com/three@0.128.0/build/three.module.js",
-                "three/addons/": "https://unpkg.com/three@0.128.0/examples/jsm/",
-                "firebase/app": "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js",
-                "firebase/database": "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js"
+                "three/addons/": "https://unpkg.com/three@0.128.0/examples/jsm/"
             }
         }
     </script>
 
-    <script type="module" src="script.js"></script>
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+        // ========== CONFIGURAÇÃO ==========
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x1a1a2e);
+        scene.fog = new THREE.FogExp2(0x1a1a2e, 0.01);
+        
+        // Câmera
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(5, 2, 5);
+        camera.lookAt(0, 0, 0);
+        
+        // Renderizador
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        document.body.appendChild(renderer.domElement);
+        
+        // Controles
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 1.5;
+        controls.enableZoom = true;
+        controls.target.set(0, 0.2, 0);
+        
+        // ========== LUZES ==========
+        // Luz ambiente
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+        
+        // Luz principal
+        const mainLight = new THREE.DirectionalLight(0xffffff, 1);
+        mainLight.position.set(5, 10, 7);
+        mainLight.castShadow = true;
+        mainLight.receiveShadow = true;
+        scene.add(mainLight);
+        
+        // Luz de preenchimento
+        const fillLight = new THREE.PointLight(0x88aaff, 0.4);
+        fillLight.position.set(0, 2, 4);
+        scene.add(fillLight);
+        
+        // Luz traseira
+        const backLight = new THREE.PointLight(0xffaa66, 0.3);
+        backLight.position.set(0, 1, -4);
+        scene.add(backLight);
+        
+        // ========== CHÃO ==========
+        const gridHelper = new THREE.GridHelper(10, 20, 0x888888, 0x444444);
+        gridHelper.position.y = -0.3;
+        scene.add(gridHelper);
+        
+        // Plano de sombra
+        const shadowPlane = new THREE.Mesh(
+            new THREE.PlaneGeometry(8, 8),
+            new THREE.ShadowMaterial({ opacity: 0.4, color: 0x000000, transparent: true })
+        );
+        shadowPlane.rotation.x = -Math.PI / 2;
+        shadowPlane.position.y = -0.3;
+        shadowPlane.receiveShadow = true;
+        scene.add(shadowPlane);
+        
+        // ========== CARREGAR CARRO ==========
+        const loader = new GLTFLoader();
+        const loadingDiv = document.getElementById('loading');
+        
+        loader.load('./models/car1/car1.glb',
+            (gltf) => {
+                const car = gltf.scene;
+                
+                // Calcular tamanho do carro
+                const box = new THREE.Box3().setFromObject(car);
+                const size = box.getSize(new THREE.Vector3());
+                const center = box.getCenter(new THREE.Vector3());
+                const maxDim = Math.max(size.x, size.y, size.z);
+                
+                // Ajustar escala (tamanho adequado)
+                const scale = 1.2 / maxDim;
+                car.scale.set(scale, scale, scale);
+                
+                // POSICIONAR NO CHÃO - Y calculado para as rodas tocarem o chão
+                // O chão está em Y = -0.3, então ajustamos para que a base do carro fique em Y = -0.25
+                car.position.set(
+                    -center.x * scale,
+                    -center.y * scale - 0.25,  // Força o carro para baixo até o chão
+                    -center.z * scale
+                );
+                
+                // Habilitar sombras
+                car.traverse((child) => {
+                    if (child.isMesh) {
+                        child.castShadow = true;
+                        child.receiveShadow = true;
+                    }
+                });
+                
+                scene.add(car);
+                
+                loadingDiv.style.display = 'none';
+                console.log('✅ Carro carregado e posicionado no chão!');
+            },
+            (progress) => {
+                if (progress.total) {
+                    const percent = Math.round(progress.loaded / progress.total * 100);
+                    loadingDiv.innerHTML = `Carregando modelo 3D... ${percent}%`;
+                }
+            },
+            (error) => {
+                console.error('Erro:', error);
+                loadingDiv.innerHTML = '❌ Erro ao carregar o modelo. Verifique o arquivo car1.glb';
+                loadingDiv.style.background = 'rgba(255,0,0,0.8)';
+            }
+        );
+        
+        // ========== ANIMAÇÃO ==========
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+        
+        // ========== REDIMENSIONAMENTO ==========
+        window.addEventListener('resize', onWindowResize, false);
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+        
+        console.log('🚀 Sistema 3D inicializado - Carro será posicionado no chão');
+    </script>
 </body>
 </html>
