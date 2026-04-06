@@ -3,146 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Rolimã Racer - Corrida de Carrinhos 3D</title>
-    
+    <title>Rolimã Racer - Escolha seu Carrinho</title>
     <link rel="stylesheet" href="style.css">
-    
-    <!-- PlayCanvas Engine -->
-    <script src="https://code.playcanvas.com/playcanvas-latest.js"></script>
-    
-    <!-- Firebase SDK (versão compat para usar com CDN) -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 </head>
 <body>
-    <!-- Canvas do PlayCanvas -->
-    <canvas id="application-canvas"></canvas>
-    
-    <!-- Interface UI -->
-    <div class="ui-overlay">
-        <!-- Tela de Login -->
-        <div id="loginScreen" class="screen active">
-            <div class="card">
-                <h1>🏎️ CARRINHO DE ROLIMÃ</h1>
-                <p>Descida da Ladeira 3D com PlayCanvas</p>
-                <input type="text" id="playerName" placeholder="Seu nome" maxlength="20">
-                <button id="loginBtn">ENTRAR</button>
-            </div>
+    <div class="container">
+        <div class="title">
+            <h1>🏎️ ROLIMÃ RACER</h1>
+            <p>Escolha seu carrinho para a descida</p>
         </div>
-        
-        <!-- Tela da Garagem (Seleção de Carros) -->
-        <div id="garageScreen" class="screen">
-            <div class="card" style="max-width: 600px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h2 id="playerNameDisplay"></h2>
-                    <button id="logoutBtn" class="btn-exit">Sair</button>
-                </div>
-                
-                <!-- Stats do Jogador -->
-                <div class="player-stats">
-                    <span>🏆 Vitórias: <span id="winsCount">0</span></span>
-                    <span>⭐ Pontos: <span id="pointsCount">100</span></span>
-                </div>
-                
-                <!-- Seleção de Carros 3D -->
-                <div style="margin: 25px 0;">
-                    <h3>🚗 ESCOLHA SEU CARRINHO</h3>
-                    <div class="car-selector">
-                        <button id="prevCarBtn" class="car-nav">◀</button>
-                        <div id="carPreview" class="car-preview">
-                            <div id="carName" class="car-name">🔥 Fúria Vermelha</div>
-                            <div id="carStats" class="car-stats">
-                                <span>⚡ Velocidade: 85% ★★★★☆</span>
-                                <span>🎮 Controle: 70% ★★★☆☆</span>
-                                <span>💪 Durabilidade: 65% ★★★☆☆</span>
-                                <span>🚀 Aceleração: 90% ★★★★★</span>
-                            </div>
-                            <button id="selectCarBtn" class="btn-primary" style="margin-top: 15px; width: 100%;">
-                                SELECIONAR CARRO
-                            </button>
-                        </div>
-                        <button id="nextCarBtn" class="car-nav">▶</button>
+
+        <div class="cars-container" id="carsContainer">
+            <!-- Carro 1 - Fúria Vermelha -->
+            <div class="car-card" data-car-id="carro1">
+                <div class="car-preview">
+                    <div class="carro1-visual">
+                        <div class="car-body red"></div>
+                        <div class="car-roof black"></div>
+                        <div class="wheel wheel1"></div>
+                        <div class="wheel wheel2"></div>
+                        <div class="wheel wheel3"></div>
+                        <div class="wheel wheel4"></div>
                     </div>
                 </div>
-                
-                <!-- Criação de Sala Solo -->
-                <div class="room-section">
-                    <h3>🎮 CORRIDA SOLO</h3>
-                    <div class="distance-selector">
-                        <button id="distMinus">-</button>
-                        <span id="distanceValue">1000</span>
-                        <button id="distPlus">+</button>
+                <h2 class="car-name">🔥 Fúria Vermelha</h2>
+                <div class="car-stats">
+                    <div class="stat">⚡ Velocidade: <span class="stat-value">85%</span></div>
+                    <div class="stat-bar"><div class="bar-fill" style="width: 85%"></div></div>
+                    <div class="stat">🎮 Controle: <span class="stat-value">70%</span></div>
+                    <div class="stat-bar"><div class="bar-fill" style="width: 70%"></div></div>
+                    <div class="stat">💪 Durabilidade: <span class="stat-value">65%</span></div>
+                    <div class="stat-bar"><div class="bar-fill" style="width: 65%"></div></div>
+                    <div class="stat">🚀 Aceleração: <span class="stat-value">90%</span></div>
+                    <div class="stat-bar"><div class="bar-fill" style="width: 90%"></div></div>
+                </div>
+                <div class="car-price">💰 Grátis</div>
+            </div>
+
+            <!-- Carro 2 - Touro Azul -->
+            <div class="car-card" data-car-id="carro2">
+                <div class="car-preview">
+                    <div class="carro2-visual">
+                        <div class="car-body blue"></div>
+                        <div class="car-bed gray"></div>
+                        <div class="car-cabin lightblue"></div>
+                        <div class="wheel wheel1"></div>
+                        <div class="wheel wheel2"></div>
+                        <div class="wheel wheel3"></div>
+                        <div class="wheel wheel4"></div>
                     </div>
-                    <p>Distância da descida (metros)</p>
-                    <button id="createSoloRoomBtn" class="btn-primary" style="width: 100%; margin-top: 15px;">
-                        🏁 INICIAR DESCIDA
-                    </button>
                 </div>
+                <h2 class="car-name">💪 Touro Azul</h2>
+                <div class="car-stats">
+                    <div class="stat">⚡ Velocidade: <span class="stat-value">60%</span></div>
+                    <div class="stat-bar"><div class="bar-fill" style="width: 60%"></div></div>
+                    <div class="stat">🎮 Controle: <span class="stat-value">50%</span></div>
+                    <div class="stat-bar"><div class="bar-fill" style="width: 50%"></div></div>
+                    <div class="stat">💪 Durabilidade: <span class="stat-value">95%</span></div>
+                    <div class="stat-bar"><div class="bar-fill" style="width: 95%"></div></div>
+                    <div class="stat">🚀 Aceleração: <span class="stat-value">45%</span></div>
+                    <div class="stat-bar"><div class="bar-fill" style="width: 45%"></div></div>
+                </div>
+                <div class="car-price">🔒 Desbloquear com vitórias</div>
             </div>
         </div>
-        
-        <!-- Tela da Corrida -->
-        <div id="raceScreen" class="screen">
-            <div class="race-hud">
-                <div class="hud-item">
-                    <span>🏁 DISTÂNCIA:</span>
-                    <span id="raceDistance">0</span>m / <span id="totalDistance">1000</span>m
-                </div>
-                <div class="hud-item">
-                    <span>⚡ VELOCIDADE:</span>
-                    <span id="raceSpeed">0</span> km/h
-                </div>
-                <div class="hud-item">
-                    <span>💪 INTEGRIDADE:</span>
-                    <span id="raceDurability">100</span>%
-                </div>
-            </div>
-            <div class="race-controls">
-                <div class="control-hint">
-                    <span>← A / → D = Desviar</span>
-                    <span>↓ S = Freiar</span>
-                </div>
-                <button id="exitRaceBtn" class="btn-exit">SAIR</button>
-            </div>
+
+        <div class="action-buttons">
+            <button id="confirmBtn" class="btn-confirm" disabled>✅ CONFIRMAR CARRO</button>
         </div>
-        
-        <!-- Tela de Resultado -->
-        <div id="resultScreen" class="screen">
-            <div class="card">
-                <h2 id="resultTitle"></h2>
-                <p id="resultMessage"></p>
-                <button id="backToGarageBtn">VOLTAR À GARAGEM</button>
-            </div>
-        </div>
+
+        <div id="selectedCarDisplay" class="selected-display"></div>
     </div>
-    
-    <!-- Configuração dos Carros -->
-    <script src="cars-config.js"></script>
-    
-    <!-- Firebase Config -->
-    <script src="firebase-config.js"></script>
-    
-    <!-- Game Script Principal -->
-    <script src="game-script.js"></script>
-    
-    <!-- Main Script -->
-    <script src="main.js"></script>
-    
-    <script>
-        // ==================== INICIALIZAÇÃO RÁPIDA ====================
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('🎮 Rolimã Racer - Sistema de Carros Inicializado');
-            
-            // Verificar se os botões de carro existem
-            setTimeout(() => {
-                if (typeof atualizarUIcarro === 'function') {
-                    atualizarUIcarro();
-                }
-                if (typeof initCarSystem === 'function') {
-                    initCarSystem();
-                }
-            }, 500);
-        });
-    </script>
+
+    <script src="script.js"></script>
 </body>
 </html>
