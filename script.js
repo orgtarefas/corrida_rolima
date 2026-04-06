@@ -278,7 +278,7 @@ function carregarModelo() {
             const scale = 1.5 / maxDim;
             
             carModel.scale.set(scale, scale, scale);
-            carModel.position.set(-center.x * scale, -center.y * scale + 0.08, -center.z * scale);
+            carModel.position.set(-center.x * scale, -center.y * scale, -center.z * scale);
             
             carModel.traverse((child) => {
                 if (child.isMesh) {
