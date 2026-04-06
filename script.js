@@ -143,7 +143,7 @@ loader.load('./models/car1/car1.glb',
         // O chão está em Y = -0.25, ajustamos para que as rodas toquem o chão
         carModel.position.set(
             -center.x * scale,
-            -center.y * scale - 0.2,
+            -center.y * scale + 0.2,
             -center.z * scale
         );
         
@@ -163,7 +163,7 @@ loader.load('./models/car1/car1.glb',
         console.log('✅ Carro carregado com sucesso!');
         console.log(`📏 Dimensões originais: ${size.x.toFixed(2)} x ${size.y.toFixed(2)} x ${size.z.toFixed(2)}`);
         console.log(`🔍 Escala aplicada: ${scale.toFixed(3)}x`);
-        console.log(`📍 Posição final: Y = ${(-center.y * scale - 0.2).toFixed(3)}`);
+        console.log(`📍 Posição final: Y = ${(-center.y * scale + 0.2).toFixed(3)}`);
     },
     (progress) => {
         if (progress.total) {
