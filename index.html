@@ -9,22 +9,32 @@
 <body>
     <div id="canvas-container"></div>
 
-    <div class="ui-overlay">
-        <div class="car-card">
-            <h1 class="car-name" id="carName">🔥 Carregando...</h1>
+    <!-- UI agora no CANTO INFERIOR ESQUERDO -->
+    <div class="ui-panel">
+        <div class="car-info">
+            <h2 id="carName">🔥 Carregando...</h2>
             
-            <div class="car-stats" id="carStats">
-                <div class="stat">⚡ Velocidade: <span id="velocidade">--</span>%</div>
-                <div class="stat-bar"><div class="bar-fill" id="velBar" style="width: 0%"></div></div>
-                <div class="stat">🎮 Controle: <span id="controle">--</span>%</div>
-                <div class="stat-bar"><div class="bar-fill" id="ctrlBar" style="width: 0%"></div></div>
-                <div class="stat">💪 Durabilidade: <span id="durabilidade">--</span>%</div>
-                <div class="stat-bar"><div class="bar-fill" id="durBar" style="width: 0%"></div></div>
+            <div class="stats">
+                <div class="stat-item">
+                    <span>⚡ Velocidade</span>
+                    <span id="velocidade">--</span>
+                    <div class="stat-bar"><div class="bar-fill" id="velBar"></div></div>
+                </div>
+                <div class="stat-item">
+                    <span>🎮 Controle</span>
+                    <span id="controle">--</span>
+                    <div class="stat-bar"><div class="bar-fill" id="ctrlBar"></div></div>
+                </div>
+                <div class="stat-item">
+                    <span>💪 Durabilidade</span>
+                    <span id="durabilidade">--</span>
+                    <div class="stat-bar"><div class="bar-fill" id="durBar"></div></div>
+                </div>
             </div>
 
-            <div class="player-info">
-                <span>⭐ Pontos: <strong id="playerPoints">0</strong></span>
-                <span>🏆 Vitórias: <strong id="playerWins">0</strong></span>
+            <div class="player-stats">
+                <span>⭐ <span id="playerPoints">0</span> pts</span>
+                <span>🏆 <span id="playerWins">0</span> vitórias</span>
             </div>
 
             <button id="selectCarBtn" class="btn-select">
@@ -37,6 +47,8 @@
         <div class="spinner"></div>
         <p>Carregando modelo 3D...</p>
     </div>
+
+    <div id="toast"></div>
 
     <script type="importmap">
         {
