@@ -19,7 +19,7 @@ body {
     z-index: 1;
 }
 
-/* ========== UI NO CANTO INFERIOR ESQUERDO ========== */
+/* UI no CANTO INFERIOR ESQUERDO */
 .ui-panel {
     position: fixed;
     bottom: 20px;
@@ -33,17 +33,15 @@ body {
     backdrop-filter: blur(10px);
     border-radius: 16px;
     padding: 15px 20px;
-    min-width: 240px;
+    min-width: 220px;
     border-left: 4px solid #ff6b35;
     pointer-events: auto;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
 }
 
 .car-info h2 {
     color: #ff6b35;
-    font-size: 1.3em;
-    margin-bottom: 12px;
-    text-align: left;
+    font-size: 1.2em;
+    margin-bottom: 10px;
 }
 
 .stats {
@@ -51,7 +49,7 @@ body {
 }
 
 .stat-item {
-    margin: 8px 0;
+    margin: 6px 0;
 }
 
 .stat-item span:first-child {
@@ -63,8 +61,6 @@ body {
 
 .stat-item span:last-child {
     color: #ffaa66;
-    font-weight: bold;
-    font-size: 0.85em;
     float: right;
 }
 
@@ -72,7 +68,6 @@ body {
     background: #2a2a35;
     height: 4px;
     border-radius: 2px;
-    overflow: hidden;
     margin-top: 3px;
     clear: both;
 }
@@ -81,62 +76,139 @@ body {
     height: 100%;
     background: linear-gradient(90deg, #ff6b35, #ffaa66);
     border-radius: 2px;
-    width: 0%;
-    transition: width 0.5s ease;
 }
 
 .player-stats {
     display: flex;
     gap: 15px;
-    margin: 12px 0;
-    padding: 8px 0;
+    margin: 10px 0;
+    padding: 6px 0;
     border-top: 1px solid #2a2a35;
-    border-bottom: 1px solid #2a2a35;
+    font-size: 0.8em;
 }
 
 .player-stats span {
     color: white;
-    font-size: 0.8em;
 }
 
 .player-stats span span {
     color: #ffaa66;
     font-weight: bold;
-    font-size: 1em;
 }
 
 .btn-select {
     background: linear-gradient(135deg, #ff6b35, #ff4433);
     color: white;
     border: none;
-    padding: 10px 20px;
-    font-size: 0.9em;
+    padding: 8px 16px;
+    font-size: 0.85em;
     font-weight: bold;
     border-radius: 25px;
     cursor: pointer;
-    transition: all 0.3s ease;
     width: 100%;
+    margin-top: 8px;
+}
+
+/* Painel dos FARÓIS */
+.farol-panel {
+    position: fixed;
+    right: 20px;
+    top: 20px;
+    width: 260px;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 12px;
+    z-index: 20;
+    color: white;
+    font-size: 11px;
+    border-right: 3px solid #ff6b35;
+    pointer-events: auto;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.farol-panel h3 {
+    color: #ff6b35;
+    margin-bottom: 8px;
+    font-size: 13px;
+    text-align: center;
+}
+
+.farol-group {
+    margin-bottom: 10px;
+    padding: 6px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 8px;
+}
+
+.farol-group h4 {
+    font-size: 11px;
+    margin-bottom: 5px;
+}
+
+.coords {
+    font-family: monospace;
+    font-size: 9px;
+    color: #ffaa66;
+    margin-bottom: 5px;
+    text-align: center;
+}
+
+.slider-row {
+    display: flex;
+    gap: 5px;
+    margin: 3px 0;
+}
+
+.slider-row label {
+    width: 18px;
+    font-weight: bold;
+    color: #ffaa66;
+}
+
+.slider-row input {
+    flex: 1;
+    cursor: pointer;
+}
+
+.farol-buttons {
+    display: flex;
+    gap: 8px;
     margin-top: 10px;
 }
 
-.btn-select:hover {
-    transform: scale(1.02);
-    box-shadow: 0 3px 10px rgba(255,107,53,0.4);
+.farol-buttons button {
+    flex: 1;
+    padding: 6px;
+    font-size: 11px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
 }
 
-/* ========== LOADING ========== */
+#btnFarol {
+    background: #ff6b35;
+    color: white;
+}
+
+#btnSalvarFarois {
+    background: #4caf50;
+    color: white;
+}
+
 .loading {
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     background: rgba(0,0,0,0.9);
-    padding: 20px 40px;
+    padding: 20px;
     border-radius: 16px;
     text-align: center;
     z-index: 100;
     color: white;
-    border: 1px solid #ff6b35;
 }
 
 .loading.hidden {
@@ -157,22 +229,17 @@ body {
     to { transform: rotate(360deg); }
 }
 
-/* ========== TOAST ========== */
-#toast {
+.toast {
     position: fixed;
     bottom: 20px;
     right: 20px;
-    z-index: 200;
-}
-
-.toast {
     background: #4caf50;
     color: white;
-    padding: 10px 20px;
+    padding: 8px 16px;
     border-radius: 8px;
-    margin-top: 10px;
     animation: fadeIn 0.3s ease;
-    font-size: 0.85em;
+    z-index: 200;
+    font-size: 12px;
 }
 
 .toast.error {
@@ -184,162 +251,8 @@ body {
     to { opacity: 1; transform: translateX(0); }
 }
 
-/* Responsivo */
-@media (max-width: 600px) {
-    .car-info {
-        min-width: 200px;
-        padding: 10px 15px;
-    }
-    .car-info h2 {
-        font-size: 1.1em;
-    }
-    .stat-item span:first-child {
-        width: 60px;
-        font-size: 0.7em;
-    }
-}
-
-/* Painel de controle dos faróis */
-.farol-panel {
-    position: fixed;
-    right: 20px;
-    top: 20px;
-    width: 280px;
-    background: rgba(0,0,0,0.85);
-    backdrop-filter: blur(10px);
-    border-radius: 12px;
-    padding: 15px;
-    z-index: 20;
-    color: white;
-    font-size: 12px;
-    border-right: 3px solid #ff6b35;
-    pointer-events: auto;
-}
-
-.farol-panel h3 {
-    color: #ff6b35;
-    margin-bottom: 10px;
-    font-size: 14px;
-    text-align: center;
-}
-
-.farol-group {
-    margin-bottom: 15px;
-    padding: 8px;
-    background: rgba(255,255,255,0.1);
-    border-radius: 8px;
-}
-
-.farol-group h4 {
-    font-size: 12px;
-    margin-bottom: 8px;
-}
-
-.farol-group .coords {
-    font-family: monospace;
-    font-size: 10px;
-    color: #ffaa66;
-    margin-bottom: 8px;
-}
-
-.slider-row {
-    display: flex;
-    gap: 8px;
-    margin: 5px 0;
-}
-
-.slider-row label {
-    width: 20px;
-    font-weight: bold;
-    color: #ffaa66;
-}
-
-.slider-row input {
-    flex: 1;
-    cursor: pointer;
-}
-
-.farol-buttons {
-    display: flex;
-    gap: 10px;
-    margin-top: 15px;
-}
-
-.farol-buttons button {
-    flex: 1;
-    padding: 8px;
-    font-size: 12px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-#btnFarol {
-    background: #ff6b35;
-    color: white;
-}
-
-#btnSalvar {
-    background: #4caf50;
-    color: white;
-}
-
-#btnResetar {
-    background: #f44336;
-    color: white;
-}
-
 @media (max-width: 700px) {
-    .farol-panel {
-        width: 260px;
-        right: 10px;
-        top: 10px;
-        padding: 10px;
-    }
-}
-
-/* Painel de controle do CARRO */
-.carro-panel {
-    position: fixed;
-    left: 20px;
-    top: 20px;
-    width: 260px;
-    background: rgba(0,0,0,0.85);
-    backdrop-filter: blur(10px);
-    border-radius: 12px;
-    padding: 15px;
-    z-index: 20;
-    color: white;
-    font-size: 12px;
-    border-left: 3px solid #4caf50;
-    pointer-events: auto;
-}
-
-.carro-panel h3 {
-    color: #4caf50;
-    margin-bottom: 10px;
-    font-size: 14px;
-    text-align: center;
-}
-
-.carro-group {
-    margin-bottom: 15px;
-    padding: 8px;
-    background: rgba(255,255,255,0.1);
-    border-radius: 8px;
-}
-
-.carro-group h4 {
-    font-size: 12px;
-    margin-bottom: 8px;
-    color: #4caf50;
-}
-
-.carro-group .coords {
-    font-family: monospace;
-    font-size: 11px;
-    color: #4caf50;
-    margin-bottom: 8px;
-    text-align: center;
+    .farol-panel { width: 240px; right: 10px; top: 10px; max-height: 85vh; }
+    .ui-panel { bottom: 10px; left: 10px; }
+    .car-info { min-width: 180px; padding: 10px; }
 }
