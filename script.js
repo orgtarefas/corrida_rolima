@@ -19,8 +19,8 @@ const carro = {
 // Variáveis globais
 let scene, camera, renderer, controls;
 let currentCar = null;
+let carModel = null;
 let faroisLigados = false;
-let carModel = null; // Referência ao modelo do carro
 
 // ========== LUZES DOS FARÓIS ==========
 let farolFrontalEsquerdo = null;
@@ -28,20 +28,22 @@ let farolFrontalDireito = null;
 let farolTraseiroEsquerdo = null;
 let farolTraseiroDireito = null;
 
-// Posições relativas ao carro (valores aproximados - você pode ajustar)
-const POSICOES_FAROIS = {
-    frontal_esquerdo: { x: -0.6, y: 1.3, z: 1.4, cor: 0xffaa66, intensidade: 1.0 },
-    frontal_direito:  { x: 0.6, y: 0.3, z: 1.4, cor: 0xffaa66, intensidade: 1.0 },
-    traseiro_esquerdo: { x: -0.6, y: 0.3, z: -1.3, cor: 0xff3333, intensidade: 0.8 },
-    traseiro_direito:  { x: 0.6, y: 0.3, z: -1.3, cor: 0xff3333, intensidade: 0.8 }
+// Esferas visuais para ajuste
+let esferaFE = null;
+let esferaFD = null;
+let esferaTE = null;
+let esferaTD = null;
+
+// Posições atuais (valores padrão - você vai ajustar)
+let posicoesFarois = {
+    frontal_esquerdo: { x: -0.6, y: 0.3, z: 1.4 },
+    frontal_direito: { x: 0.6, y: 0.3, z: 1.4 },
+    traseiro_esquerdo: { x: -0.6, y: 0.3, z: -1.3 },
+    traseiro_direito: { x: 0.6, y: 0.3, z: -1.3 }
 };
 
 let playerId = 'jogador_default';
-let playerData = {
-    pontos: 100,
-    vitorias: 0,
-    carroSelecionado: 'carro1'
-};
+let playerData = { pontos: 100, vitorias: 0, carroSelecionado: 'carro1' };
 
 // ==================== CENA 3D ====================
 function init3D() {
@@ -58,98 +60,40 @@ function init3D() {
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setClearColor(0x1a1a2e, 1);
     container.appendChild(renderer.domElement);
     
     controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
-    controls.autoRotate = true;
-    controls.autoRotateSpeed = 1.0;
+    controls.autoRotate = false; // Desligado para facilitar ajuste
     controls.enableZoom = true;
     controls.enablePan = true;
     controls.target.set(0, 0.3, 0);
     
-    let autoRotateTimeout;
-    controls.addEventListener('start', () => {
-        controls.autoRotate = false;
-        clearTimeout(autoRotateTimeout);
-    });
-    controls.addEventListener('end', () => {
-        autoRotateTimeout = setTimeout(() => {
-            controls.autoRotate = true;
-        }, 3000);
-    });
-    
-    // ========== ILUMINAÇÃO AMBIENTE ==========
+    // Luzes da cena
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
     scene.add(ambientLight);
     
-    // Luz principal
     const mainLight = new THREE.DirectionalLight(0xfff5e0, 1.2);
     mainLight.position.set(5, 8, 4);
     mainLight.castShadow = true;
-    mainLight.receiveShadow = true;
-    mainLight.shadow.mapSize.width = 1024;
-    mainLight.shadow.mapSize.height = 1024;
     scene.add(mainLight);
     
-    // Luz de preenchimento
     const fillLight = new THREE.PointLight(0x88aaff, 0.5);
     fillLight.position.set(0, 2, 5);
     scene.add(fillLight);
     
-    // Luz lateral direita
-    const rightLight = new THREE.PointLight(0xffaa66, 0.4);
-    rightLight.position.set(4, 2, 2);
-    scene.add(rightLight);
-    
-    // Luz lateral esquerda
-    const leftLight = new THREE.PointLight(0x66ccff, 0.4);
-    leftLight.position.set(-4, 2, 2);
-    scene.add(leftLight);
-    
-    // Luz de topo
-    const topLight = new THREE.PointLight(0xffffff, 0.3);
-    topLight.position.set(0, 4, 0);
-    scene.add(topLight);
-    
-    // ========== GARAGEM ==========
-    // Piso
-    const floorMaterial = new THREE.MeshStandardMaterial({
-        color: 0x2a2a3a,
-        roughness: 0.4,
-        metalness: 0.1
-    });
-    const floor = new THREE.Mesh(new THREE.PlaneGeometry(12, 12), floorMaterial);
+    // Chão
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(12, 12), new THREE.MeshStandardMaterial({ color: 0x2a2a3a, roughness: 0.4 }));
     floor.rotation.x = -Math.PI / 2;
     floor.position.y = -0.2;
     floor.receiveShadow = true;
     scene.add(floor);
     
-    // Grade
     const gridHelper = new THREE.GridHelper(12, 20, 0x88aaff, 0x335588);
     gridHelper.position.y = -0.19;
     scene.add(gridHelper);
-    
-    // Plano de sombra
-    const shadowPlane = new THREE.Mesh(
-        new THREE.PlaneGeometry(10, 10),
-        new THREE.ShadowMaterial({ opacity: 0.5, color: 0x000000, transparent: true, side: THREE.DoubleSide })
-    );
-    shadowPlane.rotation.x = -Math.PI / 2;
-    shadowPlane.position.y = -0.19;
-    shadowPlane.receiveShadow = true;
-    scene.add(shadowPlane);
-    
-    // Parede traseira
-    const wallMaterial = new THREE.MeshStandardMaterial({ color: 0x3a3a4a, roughness: 0.6 });
-    const backWall = new THREE.Mesh(new THREE.BoxGeometry(12, 3, 0.2), wallMaterial);
-    backWall.position.set(0, 1.2, -5.5);
-    backWall.receiveShadow = true;
-    scene.add(backWall);
     
     animate();
 }
@@ -168,83 +112,111 @@ window.addEventListener('resize', () => {
     }
 });
 
-// ==================== CRIAR LUZES DOS FARÓIS ====================
+// ==================== CRIAR LUZES E ESFERAS ====================
 function criarLuzesFarois() {
+    if (!carModel) return;
+    
     // Farol Frontal Esquerdo
-    farolFrontalEsquerdo = new THREE.PointLight(
-        POSICOES_FAROIS.frontal_esquerdo.cor, 
-        0
-    );
-    farolFrontalEsquerdo.position.set(
-        POSICOES_FAROIS.frontal_esquerdo.x,
-        POSICOES_FAROIS.frontal_esquerdo.y,
-        POSICOES_FAROIS.frontal_esquerdo.z
-    );
+    farolFrontalEsquerdo = new THREE.PointLight(0xffaa66, 0);
     farolFrontalEsquerdo.distance = 12;
     farolFrontalEsquerdo.decay = 1.5;
     farolFrontalEsquerdo.castShadow = true;
     
     // Farol Frontal Direito
-    farolFrontalDireito = new THREE.PointLight(
-        POSICOES_FAROIS.frontal_direito.cor,
-        0
-    );
-    farolFrontalDireito.position.set(
-        POSICOES_FAROIS.frontal_direito.x,
-        POSICOES_FAROIS.frontal_direito.y,
-        POSICOES_FAROIS.frontal_direito.z
-    );
+    farolFrontalDireito = new THREE.PointLight(0xffaa66, 0);
     farolFrontalDireito.distance = 12;
     farolFrontalDireito.decay = 1.5;
     farolFrontalDireito.castShadow = true;
     
     // Farol Traseiro Esquerdo
-    farolTraseiroEsquerdo = new THREE.PointLight(
-        POSICOES_FAROIS.traseiro_esquerdo.cor,
-        0
-    );
-    farolTraseiroEsquerdo.position.set(
-        POSICOES_FAROIS.traseiro_esquerdo.x,
-        POSICOES_FAROIS.traseiro_esquerdo.y,
-        POSICOES_FAROIS.traseiro_esquerdo.z
-    );
+    farolTraseiroEsquerdo = new THREE.PointLight(0xff3333, 0);
     farolTraseiroEsquerdo.distance = 8;
     farolTraseiroEsquerdo.decay = 1.5;
     
     // Farol Traseiro Direito
-    farolTraseiroDireito = new THREE.PointLight(
-        POSICOES_FAROIS.traseiro_direito.cor,
-        0
-    );
-    farolTraseiroDireito.position.set(
-        POSICOES_FAROIS.traseiro_direito.x,
-        POSICOES_FAROIS.traseiro_direito.y,
-        POSICOES_FAROIS.traseiro_direito.z
-    );
+    farolTraseiroDireito = new THREE.PointLight(0xff3333, 0);
     farolTraseiroDireito.distance = 8;
     farolTraseiroDireito.decay = 1.5;
     
-    // Adicionar as luzes ao carro (quando ele existir)
-    if (carModel) {
-        carModel.add(farolFrontalEsquerdo);
-        carModel.add(farolFrontalDireito);
-        carModel.add(farolTraseiroEsquerdo);
-        carModel.add(farolTraseiroDireito);
-    }
+    // Adicionar ao carro
+    carModel.add(farolFrontalEsquerdo);
+    carModel.add(farolFrontalDireito);
+    carModel.add(farolTraseiroEsquerdo);
+    carModel.add(farolTraseiroDireito);
     
-    console.log('✅ Luzes dos faróis criadas');
+    // ESFERAS VISUAIS PARA AJUSTE
+    const geometria = new THREE.SphereGeometry(0.08, 16, 16);
+    
+    esferaFE = new THREE.Mesh(geometria, new THREE.MeshStandardMaterial({ color: 0xffaa66, emissive: 0x442200 }));
+    esferaFD = new THREE.Mesh(geometria, new THREE.MeshStandardMaterial({ color: 0xffaa66, emissive: 0x442200 }));
+    esferaTE = new THREE.Mesh(geometria, new THREE.MeshStandardMaterial({ color: 0xff3333, emissive: 0x440000 }));
+    esferaTD = new THREE.Mesh(geometria, new THREE.MeshStandardMaterial({ color: 0xff3333, emissive: 0x440000 }));
+    
+    carModel.add(esferaFE);
+    carModel.add(esferaFD);
+    carModel.add(esferaTE);
+    carModel.add(esferaTD);
+    
+    atualizarPosicoesLuzes();
+    
+    console.log('✅ Luzes e esferas visíveis criadas');
 }
 
-// ==================== LIGAR/DESLIGAR FARÓIS ====================
-function ligarFarois() {
-    if (farolFrontalEsquerdo) farolFrontalEsquerdo.intensity = POSICOES_FAROIS.frontal_esquerdo.intensidade;
-    if (farolFrontalDireito) farolFrontalDireito.intensity = POSICOES_FAROIS.frontal_direito.intensidade;
-    if (farolTraseiroEsquerdo) farolTraseiroEsquerdo.intensity = POSICOES_FAROIS.traseiro_esquerdo.intensidade;
-    if (farolTraseiroDireito) farolTraseiroDireito.intensity = POSICOES_FAROIS.traseiro_direito.intensidade;
+function atualizarPosicoesLuzes() {
+    if (!farolFrontalEsquerdo) return;
     
+    // Atualizar posições das luzes
+    farolFrontalEsquerdo.position.set(posicoesFarois.frontal_esquerdo.x, posicoesFarois.frontal_esquerdo.y, posicoesFarois.frontal_esquerdo.z);
+    farolFrontalDireito.position.set(posicoesFarois.frontal_direito.x, posicoesFarois.frontal_direito.y, posicoesFarois.frontal_direito.z);
+    farolTraseiroEsquerdo.position.set(posicoesFarois.traseiro_esquerdo.x, posicoesFarois.traseiro_esquerdo.y, posicoesFarois.traseiro_esquerdo.z);
+    farolTraseiroDireito.position.set(posicoesFarois.traseiro_direito.x, posicoesFarois.traseiro_direito.y, posicoesFarois.traseiro_direito.z);
+    
+    // Atualizar posições das esferas visuais
+    if (esferaFE) esferaFE.position.set(posicoesFarois.frontal_esquerdo.x, posicoesFarois.frontal_esquerdo.y, posicoesFarois.frontal_esquerdo.z);
+    if (esferaFD) esferaFD.position.set(posicoesFarois.frontal_direito.x, posicoesFarois.frontal_direito.y, posicoesFarois.frontal_direito.z);
+    if (esferaTE) esferaTE.position.set(posicoesFarois.traseiro_esquerdo.x, posicoesFarois.traseiro_esquerdo.y, posicoesFarois.traseiro_esquerdo.z);
+    if (esferaTD) esferaTD.position.set(posicoesFarois.traseiro_direito.x, posicoesFarois.traseiro_direito.y, posicoesFarois.traseiro_direito.z);
+    
+    // Atualizar valores nos sliders
+    document.getElementById('fe_x').value = posicoesFarois.frontal_esquerdo.x;
+    document.getElementById('fe_y').value = posicoesFarois.frontal_esquerdo.y;
+    document.getElementById('fe_z').value = posicoesFarois.frontal_esquerdo.z;
+    document.getElementById('fd_x').value = posicoesFarois.frontal_direito.x;
+    document.getElementById('fd_y').value = posicoesFarois.frontal_direito.y;
+    document.getElementById('fd_z').value = posicoesFarois.frontal_direito.z;
+    document.getElementById('te_x').value = posicoesFarois.traseiro_esquerdo.x;
+    document.getElementById('te_y').value = posicoesFarois.traseiro_esquerdo.y;
+    document.getElementById('te_z').value = posicoesFarois.traseiro_esquerdo.z;
+    document.getElementById('td_x').value = posicoesFarois.traseiro_direito.x;
+    document.getElementById('td_y').value = posicoesFarois.traseiro_direito.y;
+    document.getElementById('td_z').value = posicoesFarois.traseiro_direito.z;
+    
+    // Atualizar texto das coordenadas
+    document.getElementById('fe_coords').textContent = `${posicoesFarois.frontal_esquerdo.x.toFixed(2)}, ${posicoesFarois.frontal_esquerdo.y.toFixed(2)}, ${posicoesFarois.frontal_esquerdo.z.toFixed(2)}`;
+    document.getElementById('fd_coords').textContent = `${posicoesFarois.frontal_direito.x.toFixed(2)}, ${posicoesFarois.frontal_direito.y.toFixed(2)}, ${posicoesFarois.frontal_direito.z.toFixed(2)}`;
+    document.getElementById('te_coords').textContent = `${posicoesFarois.traseiro_esquerdo.x.toFixed(2)}, ${posicoesFarois.traseiro_esquerdo.y.toFixed(2)}, ${posicoesFarois.traseiro_esquerdo.z.toFixed(2)}`;
+    document.getElementById('td_coords').textContent = `${posicoesFarois.traseiro_direito.x.toFixed(2)}, ${posicoesFarois.traseiro_direito.y.toFixed(2)}, ${posicoesFarois.traseiro_direito.z.toFixed(2)}`;
+}
+
+// ========== FUNÇÕES DE AJUSTE ==========
+function ajustarFarol(tipo, eixo, valor) {
+    posicoesFarois[tipo][eixo] = parseFloat(valor);
+    atualizarPosicoesLuzes();
+    
+    // Se os faróis estiverem ligados, atualiza a intensidade para ver o efeito
+    if (faroisLigados) {
+        ligarFarois();
+    }
+}
+
+function ligarFarois() {
+    if (farolFrontalEsquerdo) farolFrontalEsquerdo.intensity = 1.0;
+    if (farolFrontalDireito) farolFrontalDireito.intensity = 1.0;
+    if (farolTraseiroEsquerdo) farolTraseiroEsquerdo.intensity = 0.8;
+    if (farolTraseiroDireito) farolTraseiroDireito.intensity = 0.8;
     faroisLigados = true;
-    console.log('🔆 Faróis LIGADOS');
-    mostrarToast('🔆 Faróis LIGADOS', 'success');
+    document.getElementById('btnFarol').textContent = '🔆 DESLIGAR FARÓIS';
+    console.log('Faróis ligados');
 }
 
 function desligarFarois() {
@@ -252,10 +224,9 @@ function desligarFarois() {
     if (farolFrontalDireito) farolFrontalDireito.intensity = 0;
     if (farolTraseiroEsquerdo) farolTraseiroEsquerdo.intensity = 0;
     if (farolTraseiroDireito) farolTraseiroDireito.intensity = 0;
-    
     faroisLigados = false;
-    console.log('💡 Faróis DESLIGADOS');
-    mostrarToast('💡 Faróis DESLIGADOS', 'info');
+    document.getElementById('btnFarol').textContent = '💡 LIGAR FARÓIS';
+    console.log('Faróis desligados');
 }
 
 function toggleFarois() {
@@ -266,14 +237,33 @@ function toggleFarois() {
     }
 }
 
-// ==================== CARREGAR MODELO GLB ====================
+function salvarPosicoes() {
+    const posicoesString = JSON.stringify(posicoesFarois, null, 2);
+    localStorage.setItem('posicoes_farois', posicoesString);
+    mostrarToast('✅ Posições dos faróis salvas!', 'success');
+    console.log('Posições salvas:', posicoesString);
+    
+    // Mostrar código para copiar
+    alert(`Posições salvas! Copie este código para usar no futuro:\n\n${posicoesString}`);
+}
+
+function resetarPosicoes() {
+    posicoesFarois = {
+        frontal_esquerdo: { x: -0.6, y: 0.3, z: 1.4 },
+        frontal_direito: { x: 0.6, y: 0.3, z: 1.4 },
+        traseiro_esquerdo: { x: -0.6, y: 0.3, z: -1.3 },
+        traseiro_direito: { x: 0.6, y: 0.3, z: -1.3 }
+    };
+    atualizarPosicoesLuzes();
+    mostrarToast('🔄 Posições resetadas para o padrão', 'info');
+}
+
+// ==================== CARREGAR MODELO ====================
 function carregarModelo() {
     const loadingDiv = document.getElementById('loading');
     loadingDiv.classList.remove('hidden');
     
-    if (currentCar) {
-        scene.remove(currentCar);
-    }
+    if (currentCar) scene.remove(currentCar);
     
     const loader = new GLTFLoader();
     
@@ -281,26 +271,15 @@ function carregarModelo() {
         (gltf) => {
             carModel = gltf.scene;
             
-            // Calcular bounding box
             const box = new THREE.Box3().setFromObject(carModel);
             const size = box.getSize(new THREE.Vector3());
             const center = box.getCenter(new THREE.Vector3());
             const maxDim = Math.max(size.x, size.y, size.z);
-            
-            // Ajustar escala
-            const targetHeight = 1.5;
-            const scale = targetHeight / maxDim;
+            const scale = 1.5 / maxDim;
             
             carModel.scale.set(scale, scale, scale);
+            carModel.position.set(-center.x * scale, -center.y * scale + 0.08, -center.z * scale);
             
-            // Posicionar no chão
-            carModel.position.set(
-                -center.x * scale,
-                -center.y * scale,
-                -center.z * scale
-            );
-            
-            // Habilitar sombras
             carModel.traverse((child) => {
                 if (child.isMesh) {
                     child.castShadow = true;
@@ -311,79 +290,46 @@ function carregarModelo() {
             scene.add(carModel);
             currentCar = carModel;
             
-            // Criar e adicionar as luzes dos faróis ao carro
+            // Carregar posições salvas
+            const salvas = localStorage.getItem('posicoes_farois');
+            if (salvas) {
+                try {
+                    const loaded = JSON.parse(salvas);
+                    posicoesFarois = loaded;
+                    console.log('Posições carregadas do localStorage');
+                } catch(e) {}
+            }
+            
             criarLuzesFarois();
             
-            // Adicionar esferas visuais para os faróis (opcional - ajuda a ver onde estão)
-            adicionarEsferasFarois();
-            
             loadingDiv.classList.add('hidden');
-            console.log('✅ Carro GLB carregado com sucesso!');
-            mostrarToast('✅ Carro 3D carregado! Pressione ESPAÇO para faróis', 'success');
+            mostrarToast('✅ Carro carregado! Ajuste os faróis com os controles', 'success');
         },
         (progress) => {
             if (progress.total) {
                 const percent = (progress.loaded / progress.total * 100).toFixed(0);
                 const p = loadingDiv.querySelector('p');
-                if (p) p.textContent = `Carregando modelo 3D... ${percent}%`;
+                if (p) p.textContent = `Carregando... ${percent}%`;
             }
         },
         (error) => {
-            console.error('Erro ao carregar GLB:', error);
+            console.error('Erro:', error);
             loadingDiv.classList.add('hidden');
-            mostrarToast('❌ Arquivo car1.glb não encontrado!', 'error');
+            mostrarToast('❌ Arquivo GLB não encontrado!', 'error');
         }
     );
-}
-
-// ========== OPCIONAL: Esferas para visualizar posições dos faróis ==========
-function adicionarEsferasFarois() {
-    // Isso é apenas para DEBUG - mostra onde as luzes estão posicionadas
-    // Comente ou remova depois de ajustar as posições
-    
-    const geometria = new THREE.SphereGeometry(0.08, 8, 8);
-    
-    const esferaFE = new THREE.Mesh(geometria, new THREE.MeshStandardMaterial({ color: 0xffaa66, emissive: 0x442200 }));
-    esferaFE.position.set(POSICOES_FAROIS.frontal_esquerdo.x, POSICOES_FAROIS.frontal_esquerdo.y, POSICOES_FAROIS.frontal_esquerdo.z);
-    carModel.add(esferaFE);
-    
-    const esferaFD = new THREE.Mesh(geometria, new THREE.MeshStandardMaterial({ color: 0xffaa66, emissive: 0x442200 }));
-    esferaFD.position.set(POSICOES_FAROIS.frontal_direito.x, POSICOES_FAROIS.frontal_direito.y, POSICOES_FAROIS.frontal_direito.z);
-    carModel.add(esferaFD);
-    
-    const esferaTE = new THREE.Mesh(geometria, new THREE.MeshStandardMaterial({ color: 0xff3333, emissive: 0x440000 }));
-    esferaTE.position.set(POSICOES_FAROIS.traseiro_esquerdo.x, POSICOES_FAROIS.traseiro_esquerdo.y, POSICOES_FAROIS.traseiro_esquerdo.z);
-    carModel.add(esferaTE);
-    
-    const esferaTD = new THREE.Mesh(geometria, new THREE.MeshStandardMaterial({ color: 0xff3333, emissive: 0x440000 }));
-    esferaTD.position.set(POSICOES_FAROIS.traseiro_direito.x, POSICOES_FAROIS.traseiro_direito.y, POSICOES_FAROIS.traseiro_direito.z);
-    carModel.add(esferaTD);
-    
-    console.log('📍 Esferas de posição dos faróis adicionadas (visíveis para ajuste)');
 }
 
 // ==================== FIREBASE ====================
 function carregarDadosFirebase() {
     const playerRef = ref(database, `jogadores/${playerId}`);
-    
     onValue(playerRef, (snapshot) => {
         const data = snapshot.val();
-        
         if (data) {
-            playerData = {
-                pontos: data.pontos || 100,
-                vitorias: data.vitorias || 0,
-                carroSelecionado: data.carroSelecionado || 'carro1'
-            };
+            playerData = { pontos: data.pontos || 100, vitorias: data.vitorias || 0, carroSelecionado: data.carroSelecionado || 'carro1' };
         } else {
-            set(playerRef, {
-                pontos: 100,
-                vitorias: 0,
-                carroSelecionado: 'carro1'
-            });
-            playerData = { pontos: 100, vitorias: 0, carroSelecionado: 'carro1' };
+            set(playerRef, { pontos: 100, vitorias: 0, carroSelecionado: 'carro1' });
         }
-        
         atualizarUI();
     });
 }
@@ -393,11 +339,9 @@ function atualizarUI() {
     document.getElementById('velocidade').textContent = carro.stats.velocidade;
     document.getElementById('controle').textContent = carro.stats.controle;
     document.getElementById('durabilidade').textContent = carro.stats.durabilidade;
-    
     document.getElementById('velBar').style.width = `${carro.stats.velocidade}%`;
     document.getElementById('ctrlBar').style.width = `${carro.stats.controle}%`;
     document.getElementById('durBar').style.width = `${carro.stats.durabilidade}%`;
-    
     document.getElementById('playerPoints').textContent = playerData.pontos;
     document.getElementById('playerWins').textContent = playerData.vitorias;
 }
@@ -414,37 +358,39 @@ function mostrarToast(mensagem, tipo) {
     toast.className = `toast ${tipo === 'error' ? 'error' : ''}`;
     toast.textContent = mensagem;
     toastContainer.appendChild(toast);
-    
     setTimeout(() => {
         toast.style.opacity = '0';
         setTimeout(() => toast.remove(), 300);
     }, 2000);
 }
 
-// ==================== EVENTO DO TECLADO ====================
-document.addEventListener('keydown', (event) => {
-    if (event.code === 'Space') {
-        event.preventDefault();
-        toggleFarois();
-    }
-});
-
 // ==================== INICIALIZAÇÃO ====================
 document.addEventListener('DOMContentLoaded', () => {
     init3D();
     carregarDadosFirebase();
     
-    setTimeout(() => {
-        carregarModelo();
-    }, 500);
+    setTimeout(() => carregarModelo(), 500);
     
     document.getElementById('selectCarBtn').addEventListener('click', selecionarCarro);
+    document.getElementById('btnFarol').addEventListener('click', toggleFarois);
+    document.getElementById('btnSalvar').addEventListener('click', salvarPosicoes);
+    document.getElementById('btnResetar').addEventListener('click', resetarPosicoes);
     
-    console.log('🚀 Sistema inicializado!');
-    console.log('💡 Pressione ESPAÇO para ligar/desligar os faróis');
-    console.log('📍 Posições dos faróis configuradas:');
-    console.log('   - Frontal Esquerdo:', POSICOES_FAROIS.frontal_esquerdo);
-    console.log('   - Frontal Direito:', POSICOES_FAROIS.frontal_direito);
-    console.log('   - Traseiro Esquerdo:', POSICOES_FAROIS.traseiro_esquerdo);
-    console.log('   - Traseiro Direito:', POSICOES_FAROIS.traseiro_direito);
+    // Eventos dos sliders
+    const sliders = ['fe', 'fd', 'te', 'td'];
+    sliders.forEach(farol => {
+        ['x', 'y', 'z'].forEach(eixo => {
+            document.getElementById(`${farol}_${eixo}`).addEventListener('input', (e) => {
+                let tipo;
+                if (farol === 'fe') tipo = 'frontal_esquerdo';
+                else if (farol === 'fd') tipo = 'frontal_direito';
+                else if (farol === 'te') tipo = 'traseiro_esquerdo';
+                else tipo = 'traseiro_direito';
+                ajustarFarol(tipo, eixo, e.target.value);
+            });
+        });
+    });
+    
+    console.log('🚀 Sistema de ajuste de faróis inicializado!');
+    console.log('💡 Use os sliders para mover as esferas até os faróis do carro');
 });
